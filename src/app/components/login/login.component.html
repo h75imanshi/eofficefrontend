@@ -1,0 +1,153 @@
+<!-- Intra Login Page — Intra Portal Style -->
+<div class="efile-page">
+
+  <!-- ===== TOP NAVBAR ===== -->
+  <!-- <header class="top-navbar">
+    <div class="nav-left">
+      <div class="nav-logo-circle">
+        <span>Intra</span>
+      </div>
+      <div class="nav-brand">
+        <h1>Intra Files</h1>
+        <p>Press Registrar General of India</p>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-ministry">
+        <span class="ministry-title">Ministry of Information &amp; Broadcasting</span>
+        <span class="ministry-sub">Government of India</span>
+      </div>
+      <div class="ashok-stambh">🏛️</div>
+    </div>
+  </header> -->
+
+
+  <div class="page-banner">
+    <div class="banner-content">
+      <span class="banner-icon">🔐</span>
+      <div>
+        <h2 class="banner-title">User Login — Intra Portal</h2>
+        <p class="banner-sub">Sign in with your registered username and password to access Intra</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN BODY ===== -->
+  <div class="page-body">
+    <div class="login-card">
+
+      <!-- Card Header Tabs (decorative, matching e-File style) -->
+      <div class="card-tab-bar">
+        <div class="card-tab active">
+          <span class="tab-icon">🔑</span> Login
+        </div>
+        <div class="card-tab" routerLink="/signup" style="cursor:pointer">
+          <span class="tab-icon">📝</span> New Registration
+        </div>
+      </div>
+
+      <!-- Alert Messages -->
+      <div class="alert-msg alert-error" *ngIf="errorMessage">
+        <span>⚠️</span> {{ errorMessage }}
+      </div>
+      <div class="alert-msg alert-success" *ngIf="successMessage">
+        <span>✅</span> {{ successMessage }}
+      </div>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="efile-form">
+
+        <!-- Username Field -->
+        <div class="field-row">
+          <label class="field-label" for="username">
+            Username <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <input
+              id="username"
+              type="text"
+              formControlName="username"
+              class="efile-input"
+              [class.input-error]="f['username'].invalid && f['username'].touched"
+              placeholder="Enter your username"
+            />
+            <span class="input-hint" *ngIf="!f['username'].invalid || !f['username'].touched">
+              Example: <em>john_doe</em>
+            </span>
+            <span class="field-error" *ngIf="f['username'].invalid && f['username'].touched">
+              <span *ngIf="f['username'].errors?.['required']">Username is required</span>
+              <span *ngIf="f['username'].errors?.['minlength']">Minimum 3 characters required</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="field-row">
+          <label class="field-label" for="password">
+            Password <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <div class="input-with-eye">
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                class="efile-input"
+                [class.input-error]="f['password'].invalid && f['password'].touched"
+                placeholder="Enter your password"
+              />
+              <button type="button" class="eye-btn" (click)="togglePassword()">
+                <span>{{ showPassword ? '🙈' : '👁️' }}</span>
+              </button>
+            </div>
+            <span class="field-error" *ngIf="f['password'].invalid && f['password'].touched">
+              <span *ngIf="f['password'].errors?.['required']">Password is required</span>
+              <span *ngIf="f['password'].errors?.['minlength']">Minimum 6 characters required</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Forgot Password
+        <div class="field-row forgot-row">
+          <div class="field-label"></div>
+          <div class="field-input-wrap">
+            <a href="#" class="forgot-link">Forgot Password?</a>
+          </div>
+        </div> -->
+
+        <!-- Action Buttons -->
+        <div class="field-row btn-row">
+          <div class="field-label"></div>
+          <div class="field-input-wrap btn-wrap">
+            <button type="submit" class="btn-search" [disabled]="isLoading">
+              <span class="btn-dot" [class.loading]="isLoading"></span>
+              {{ isLoading ? 'Signing in...' : 'Login' }}
+            </button>
+            <button type="button" class="btn-clear" (click)="loginForm.reset(); errorMessage=''; successMessage=''">
+              Clear
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Signup Link -->
+      <div class="signup-hint">
+        <p>
+          Don't have an account?
+<a routerLink="/signup" class="signup-link">
+  New Registration
+</a>        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <!-- <footer class="efile-footer">
+    <span>© Ministry of Information &amp; Broadcasting, Government of India</span>
+    <span class="footer-sep">|</span>
+    <span>Intra Platform</span>
+  </footer> -->
+
+</div>

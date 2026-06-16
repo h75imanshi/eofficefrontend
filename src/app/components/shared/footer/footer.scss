@@ -1,0 +1,12 @@
+.eoffice-footer {
+  background: #001233;
+  color: rgba(255,255,255,.85);
+  text-align: center;
+  padding: 1px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-top: 1px solid rgba(255,255,255,.15);
+  width: 100%;
+  box-sizing: border-box;   /* ← prevents overflow */
+  margin-top: auto;         /* ← pushes footer to bottom naturally */
+}

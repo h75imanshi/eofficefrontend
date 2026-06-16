@@ -1,0 +1,578 @@
+<!-- src/app/components/press-search/press-search.component.html -->
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <!-- <div class="header-top">
+    <div class="logo-section">
+
+      <div>
+        <h1>Press Registrar General of India</h1>
+        <p>Ministry of Home Affairs, Government of India</p>
+      </div>
+    </div>
+
+    <div class="govt-text">
+      Government of India
+    </div>
+  </div>
+
+  <div class="portal-banner">
+    <h2>🖨 Printing Press Search Portal</h2>
+    <p>Search press records by Name, Application Number, Printer, or State</p>
+  </div>
+
+</div> -->
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tabs">
+
+    <button class="tab" [class.active]="activeTab==='name'" (click)="switchTab('name')">
+      🏭 Press Name
+    </button>
+
+    <button class="tab" [class.active]="activeTab==='appno'" (click)="switchTab('appno')">
+      📄 Application No.
+    </button>
+
+    <button class="tab" [class.active]="activeTab==='printer'" (click)="switchTab('printer')">
+      👤 Printer Name
+    </button>
+
+    <button class="tab" [class.active]="activeTab==='state'" (click)="switchTab('state')">
+      📍 State Wise
+    </button>
+
+  </div>
+</div>
+
+<!-- Search form -->
+<div class="search-box">
+
+  <!-- By Name -->
+  <div *ngIf="activeTab==='name'" class="search-pane">
+    <label class="field-label">Press Name <span>*</span></label>
+    <div class="search-row">
+      <input [value]="searchName" placeholder="e.g. Haryana Printing Press"
+        (input)="searchName = $any($event.target).value" (keyup.enter)="search()" />
+      <button class="btn-search" (click)="search()" [disabled]="loading">
+        {{ loading ? 'Searching...' : '🔍 Search' }}
+      </button>
+    </div>
+    <small>Enter full or partial press name</small>
+  </div>
+
+  <!-- By App No -->
+  <div *ngIf="activeTab==='appno'" class="search-pane">
+    <label class="field-label">Application / Registration No. <span>*</span></label>
+    <div class="search-row">
+      <input [value]="searchAppNo" placeholder="e.g. APP/HR/2024/001" (input)="searchAppNo = $any($event.target).value"
+        (keyup.enter)="search()" />
+      <button class="btn-search" (click)="search()" [disabled]="loading">
+        {{ loading ? 'Searching...' : '🔍 Search' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- By Printer -->
+  <div *ngIf="activeTab==='printer'" class="search-pane">
+    <label class="field-label">Printer / Keeper Name <span>*</span></label>
+    <div class="search-row">
+      <input [value]="searchPrinter" placeholder="e.g. Rakesh Kumar" (input)="searchPrinter = $any($event.target).value"
+        (keyup.enter)="search()" />
+      <button class="btn-search" (click)="search()" [disabled]="loading">
+        {{ loading ? 'Searching...' : '🔍 Search' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- By State -->
+  <div *ngIf="activeTab==='state'" class="search-pane">
+    <div class="row-2col">
+      <div>
+        <label class="field-label">State <span>*</span></label>
+        <select [value]="searchState" (change)="searchState = $any($event.target).value; onStateChange()">
+
+          <option value="">-- Select State --</option>
+
+          <option *ngFor="let s of states" [value]="s">
+            {{ s }}
+          </option>
+
+        </select>
+      </div>
+      <div>
+        <label class="field-label">District</label>
+        <select [value]="searchDist" (change)="searchDist = $any($event.target).value">
+          <option value="">-- All Districts --</option>
+          <option *ngFor="let d of districts" [value]="d">
+            {{ d }}
+          </option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-search" (click)="search()" [disabled]="loading || !searchState">
+      {{ loading ? 'Searching...' : '🔍 Search' }}
+    </button>
+  </div>
+
+
+  <!-- <div style="background:yellow;padding:10px;margin:10px 0;">
+      Results Length = {{ results.length }}
+      <br>
+      Result Count = {{ resultCount }}
+      <br>
+      Searched = {{ searched }}
+      <br>
+      Loading = {{ loading }}
+    </div> -->
+
+
+  <!-- Results table -->
+  <div class="results-wrap" *ngIf="searched">
+    <div class="results-header">
+      <span>📊 Search Results</span>
+      <span class="badge">{{ resultCount }} record(s) found</span>
+    </div>
+
+    <div *ngIf="results.length === 0" class="no-result">No records found.</div>
+
+    <div class="table-scroll" *ngIf="results.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>App. No.</th>
+            <th>Press Name</th>
+            <th>Printer Name</th>
+            <th>State / District</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let p of results; let i = index">
+            <!-- Result row -->
+            <tr class="data-row" [class.expanded]="expandedId === p.id">
+              <td>{{ i + 1 }}</td>
+              <td class="app-no">{{ p.appNo }}</td>
+              <td class="press-name">{{ p.pressName }}</td>
+              <td>{{ p.printerName }}</td>
+              <td>{{ p.state }} / {{ p.district }}</td>
+              <td><span class="status-badge">{{ p.status }}</span></td>
+              <td>
+                <button class="btn-view" (click)="toggleDetail(p.id)">
+                  {{ expandedId === p.id ? '▲ Hide' : '👁 View' }}
+                </button>
+              </td>
+            </tr>
+
+            <!-- Inline detail row -->
+            <tr class="detail-tr" *ngIf="expandedId === p.id">
+              <td colspan="7">
+                <div class="detail-inner">
+
+                  <!-- Press Details section -->
+                  <div class="info-section">
+
+                    <div class="section-title">
+                      🏭 Press Details
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Press Name</div>
+                      <div class="value">{{ p.pressName }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Application No.</div>
+                      <div class="value">{{ p.appNo }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Registration No.</div>
+                      <div class="value">{{ p.regNo }}</div>
+                    </div>
+
+                    <!-- <div class="info-row">
+                      <div class="label">Press Type</div>
+                      <div class="value">{{ p.pressType }}</div>
+                    </div> -->
+                    <div class="info-row">
+                      <div class="label">Press Address</div>
+                      <div class="value">{{ p.pressAddress || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Press Pincode</div>
+                      <div class="value">{{p.pressPincode || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">State</div>
+                      <div class="value">{{ p.state }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">District</div>
+                      <div class="value">{{ p.district }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Status</div>
+                      <div class="value">
+                        <span class="status-badge">{{ p.status }}</span>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Keeper details-->
+
+                  <div class="info-section">
+                    <div class="section-title">
+                      👤 Keeper Details
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Keeper Name</div>
+                      <div class="value">{{ selectedKeeper?.keeperName || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Mobile</div>
+                      <div class="value">{{ selectedKeeper?.keeperMobileNo || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Email</div>
+                      <div class="value">{{ selectedKeeper?.keeperEmail || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Keeper State</div>
+                      <div class="value">{{ selectedKeeper?.keeperState || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Keeper District</div>
+                      <div class="value">{{ selectedKeeper?.keeperDistrict || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Keeper Pincode</div>
+                      <div class="value">{{ selectedKeeper?.keeperPincode || '-' }}</div>
+                    </div>
+
+
+                  </div>
+                  <!-- Machine Details-->
+                  <div class="info-section">
+                    <div class="section-title">
+                      ⚙️ Machine Details
+                    </div>
+
+                    <div class="label">Machine Type</div>
+                    <div class="value">
+                      {{ selectedMachine[0]?.machineType || '-' }}
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Model</div>
+                      <div class="value">{{ selectedMachine[0]?.model || '-' }}</div>
+                    </div>
+
+                    <div class="info-row">
+                      <div class="label">Capacity</div>
+                      <div class="value">{{ selectedMachine[0]?.capacity || '-' }}</div>
+                    </div>
+
+                    <div class="label">Power Rating</div>
+                    <div class="value">
+                      {{ selectedMachine[0]?.powerRating || '-' }}
+                    </div>
+                  </div>
+
+
+                  <!--Newspaper Details-->
+                  <!-- <div class="info-section">
+
+                    <div class="section-title">
+                      📰 Newspaper Details
+                      (Total: {{ totalNewspapers }})
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">Old Registration No</span>
+                      <span class="value">{{ selectedNewspaper?.oldRegistrationNoNews || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">Registration No</span>
+                      <span class="value">{{ selectedNewspaper?.registrationNoNews || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">Newspaper Name</span>
+                      <span class="value">{{ selectedNewspaper?.newspaperTitle || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">Language</span>
+                      <span class="value">{{ selectedNewspaper?.languageNw || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">Periodicity</span>
+                      <span class="value">{{ selectedNewspaper?.periodicity || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">Place of Publication Address</span>
+                      <span class="value">{{ selectedNewspaper?.ppbAddress || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">State</span>
+                      <span class="value">{{ selectedNewspaper?.ppbState || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">District</span>
+                      <span class="value">{{ selectedNewspaper?.ppbDistrict || '-' }}</span>
+                    </div>
+
+                    <div class="info-row">
+                      <span class="label">Pincode</span>
+                      <span class="value">{{ selectedNewspaper?.ppbPincode || '-' }}</span>
+                    </div>
+                  </div> -->
+
+
+                  <!-- Newspaper -->
+                  <div class="info-section">
+
+                    <div class="section-title">
+                      📰 Newspapers Printed by this Press
+                      (Total: {{ totalNewspapers }})
+                    </div>
+
+                    <table class="newspaper-table">
+                      <thead>
+                        <tr>
+                          <th>S.No.</th>
+                          <th>Old Reg No</th>
+                          <th>Registration No</th>
+                          <th>Newspaper Name</th>
+                          <th>Language</th>
+                          <th>Periodicity</th>
+                          <th>Place of Publication</th>
+                          <th>State</th>
+                          <th>District</th>
+                          <th>Pincode</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        <tr *ngFor="let n of selectedNewspapers; let i = index">
+                          <td>{{ i + 1 }}</td>
+                          <td>{{ n.oldRegistrationNoNews || '-' }}</td>
+                          <td>{{ n.registrationNoNews || '-' }}</td>
+                          <td>{{ n.newspaperTitle || '-' }}</td>
+                          <td>{{ n.languageNw || '-' }}</td>
+                          <td>{{ n.periodicity || '-' }}</td>
+                          <td>{{ n.ppbAddress || '-' }}</td>
+                          <td>{{ n.ppbState || '-' }}</td>
+                          <td>{{ n.ppbDistrict || '-' }}</td>
+                          <td>{{ n.ppbPincode || '-' }}</td>
+                        </tr>
+
+                        <tr *ngIf="!(selectedNewspapers.length) || selectedNewspapers.length === 0">
+                          <td colspan="10" class="text-center">
+                            No newspapers found for this press
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                  </div>
+
+
+                  <footer class="portal-footer">
+
+                    <div class="footer-content">
+
+                      <div class="footer-left">
+                        © 2026 Ministry of Information & Broadcasting,
+                        Government of India
+                      </div>
+
+                      <div class="footer-center">
+                        Printing Press Search Portal
+                      </div>
+
+                      <div class="footer-right">
+                        Version 1.0
+                      </div>
+
+                    </div>
+
+                  </footer>
+
+                  <!-- ===== FULL DETAIL MODAL =====
+  <div class="modal-overlay" *ngIf="modalOpen" (click)="closeModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <span>🖨️ Printing Press Details — {{ modalDetail?.pressName }}</span>
+        <button class="modal-close" (click)="closeModal()">✕ Close</button>
+      </div>
+
+      <div class="modal-body" *ngIf="modalLoading">
+        <p style="text-align:center;padding:30px;">Loading details...</p>
+      </div>
+
+      <div class="modal-body" *ngIf="!modalLoading && modalDetail as detail">
+
+        <!-- Press Details 
+        <div class="modal-section">
+          <div class="modal-sec-title">🏭 Press Details</div>
+          <div class="modal-grid">
+            <div class="kv">
+              <div class="k">Press Name</div>
+              <div class="v">{{ detail.pressName }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Application No.</div>
+              <div class="v">{{ detail.appNo }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Reg. No.</div>
+              <div class="v">{{ detail.regNo }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Press Type</div>
+              <div class="v">{{ detail.pressType }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Est. Year</div>
+              <div class="v">{{ detail.estYear }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Floor Area</div>
+              <div class="v">{{ detail.floorArea }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">License No.</div>
+              <div class="v">{{ detail.licenseNo }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">State</div>
+              <div class="v">{{ detail.state }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">District</div>
+              <div class="v">{{ detail.district }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Status</div>
+              <div class="v"><span class="status-badge">{{ detail.status }}</span></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Keeper Details 
+        <div class="modal-section" *ngFor="let k of detail.keepers; let ki = index">
+          <div class="modal-sec-title">👤 Keeper Details{{ detail.keepers.length > 1 ? ' #'+(ki+1) : '' }}</div>
+          <div class="modal-grid">
+            <div class="kv">
+              <div class="k">Keeper Name</div>
+              <div class="v">{{ k.keeperName }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Mobile</div>
+              <div class="v">{{ k.mobile }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Email</div>
+              <div class="v">{{ k.email }}</div>
+            </div>
+            <!-- STATE -
+
+
+            <div class="form-group">
+
+              <label>State</label>
+              <select class="form-control">
+
+              </select>
+
+
+
+            </div>
+
+            <!-- DISTRICT -
+
+            <div class="form-group">
+
+              <label>District</label>
+              <select class="form-control">
+
+              </select>
+
+            </div>
+            <div class="kv">
+              <div class="k">Address</div>
+              <div class="v">{{ k.address }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Aadhar (Masked)</div>
+              <div class="v">{{ k.aadharNo }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Machine Details -
+        <div class="modal-section" *ngFor="let m of detail.machines; let mi = index">
+          <div class="modal-sec-title">⚙️ Machine Details{{ detail.machines.length > 1 ? ' #'+(mi+1) : '' }}</div>
+          <div class="modal-grid">
+            <div class="kv">
+              <div class="k">Machine Name</div>
+              <div class="v">{{ m.machineName }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Type</div>
+              <div class="v">{{ m.machineType }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Model</div>
+              <div class="v">{{ m.model }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Serial No.</div>
+              <div class="v">{{ m.serialNo }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Mfg. Year</div>
+              <div class="v">{{ m.mfgYear }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Capacity</div>
+              <div class="v">{{ m.capacity }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Quantity</div>
+              <div class="v">{{ m.quantity }}</div>
+            </div>
+            <div class="kv">
+              <div class="k">Condition</div>
+              <div class="v">{{ m.condition }}</div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div> -->

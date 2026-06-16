@@ -1,0 +1,257 @@
+<!--Intra Signup Page — Intra Files Portal Style -->
+<div class="efile-page">
+
+  <!-- ===== TOP NAVBAR ===== -->
+  <!-- <header class="top-navbar">
+    <div class="nav-left">
+      <div class="nav-logo-circle">
+        <span>Intra</span>
+      </div>
+      <div class="nav-brand">
+        <h1>Intra Files</h1>
+        <p>Press Registrar General of India</p>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-ministry">
+        <span class="ministry-title">Ministry of Information &amp; Broadcasting</span>
+        <span class="ministry-sub">Government of India</span>
+      </div>
+      <div class="ashok-stambh">🏛️</div>
+    </div>
+  </header> -->
+
+  
+  <div class="page-banner">
+    <div class="banner-content">
+      <span class="banner-icon">📝</span>
+      <div>
+        <h2 class="banner-title">New User Registration —Intra Portal</h2>
+        <p class="banner-sub">Create your Intra account to access filing and document services</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN BODY ===== -->
+  <div class="page-body">
+    <div class="login-card signup-card">
+
+      <!-- Card Tab Bar -->
+      <div class="card-tab-bar">
+        <div class="card-tab" routerLink="/login" style="cursor:pointer">
+          <span class="tab-icon">🔑</span> Login
+        </div>
+        <div class="card-tab active">
+          <span class="tab-icon">📝</span> New Registration
+        </div>
+      </div>
+
+      <!-- Alert Messages -->
+      <div class="alert-msg alert-error" *ngIf="errorMessage">
+        <span>⚠️</span> {{ errorMessage }}
+      </div>
+      <div class="alert-msg alert-success" *ngIf="successMessage">
+        <span>✅</span> {{ successMessage }}
+      </div>
+
+      <!-- Signup Form -->
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="efile-form">
+
+        <!-- Full Name -->
+        <div class="field-row">
+          <label class="field-label" for="fullName">
+            Full Name <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <input
+              id="fullName"
+              type="text"
+              formControlName="fullName"
+              class="efile-input"
+              [class.input-error]="signupForm.get('fullName')?.invalid && signupForm.get('fullName')?.touched"
+              placeholder="Enter your full name"
+            />
+              <span class="field-error" *ngIf="signupForm.get('fullName')?.invalid && signupForm.get('fullName')?.touched">
+              Full name is required (min 3 characters)
+            </span>
+          </div>
+        </div>
+
+        <!-- Username -->
+        <div class="field-row">
+          <label class="field-label" for="username">
+            Username <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <input
+              id="username"
+              type="text"
+              formControlName="username"
+              class="efile-input"
+              [class.input-error]="signupForm.get('username')?.invalid && signupForm.get('username')?.touched"
+              placeholder="Choose a unique username"
+            />
+            <span class="input-hint" *ngIf="!signupForm.get('username')?.invalid || !signupForm.get('username')?.touched">
+              Only letters, numbers and underscore (_) allowed
+            </span>
+            <span class="field-error" *ngIf="signupForm.get('username')?.invalid && signupForm.get('username')?.touched">
+              <span *ngIf="signupForm.get('username')?.errors?.['required']">Username is required</span>
+              <span *ngIf="signupForm.get('username')?.errors?.['minlength']">Minimum 3 characters</span>
+              <span *ngIf="signupForm.get('username')?.errors?.['pattern']">Only letters, numbers and _ allowed</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="field-row">
+          <label class="field-label" for="email">
+            Email Address <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              class="efile-input"
+              [class.input-error]="signupForm.get('email')?.invalid && signupForm.get('email')?.touched"
+              placeholder="Enter your official email address"
+            />
+            <span class="input-hint" *ngIf="!signupForm.get('email')?.invalid || !signupForm.get('email')?.touched">
+              Example: <em>name@gov.in</em>
+            </span>
+            <span class="field-error" *ngIf="signupForm.get('email')?.invalid && signupForm.get('email')?.touched">
+              <span *ngIf="signupForm.get('email')?.errors?.['required']">Email is required</span>
+              <span *ngIf="signupForm.get('email')?.errors?.['email']">Please enter a valid email address</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field-row">
+          <label class="field-label" for="password">
+            Password <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <div class="input-with-eye">
+              <input
+                id="password"
+                [type]="showPassword ? 'text' : 'password'"
+                formControlName="password"
+                class="efile-input"
+                [class.input-error]="signupForm.get('password')?.invalid && signupForm.get('password')?.touched"
+                placeholder="Create a strong password"
+              />
+              <button type="button" class="eye-btn" (click)="showPassword = !showPassword">
+                {{ showPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+            <span class="input-hint" *ngIf="!signupForm.get('password')?.invalid || !signupForm.get('password')?.touched">
+              Min 6 chars with 1 uppercase letter and 1 number
+            </span>
+            <span class="field-error" *ngIf="signupForm.get('password')?.invalid && signupForm.get('password')?.touched">
+              <span *ngIf="signupForm.get('password')?.errors?.['required']">Password is required</span>
+              <span *ngIf="signupForm.get('password')?.errors?.['pattern']">
+                Must be 6+ characters with uppercase letter and number
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="field-row">
+          <label class="field-label" for="confirmPassword">
+            Confirm Password <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <div class="input-with-eye">
+              <input
+                id="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                class="efile-input"
+                [class.input-error]="signupForm.get('confirmPassword')?.touched && signupForm.errors?.['passwordMismatch']"
+                placeholder="Re-enter your password"
+              />
+              <button type="button" class="eye-btn" (click)="showConfirmPassword = !showConfirmPassword">
+                {{ showConfirmPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+            <span class="field-error" *ngIf="f['confirmPassword'].touched && signupForm.errors?.['passwordMismatch']">
+              Passwords do not match!
+            </span>
+          </div>
+        </div>
+
+        <!-- CAPTCHA 
+        <div class="field-row">
+          <label class="field-label">
+            Security Check <span class="required">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <div class="captcha-section">
+              <div class="captcha-question-row">
+                <div class="captcha-display">
+                  <span class="captcha-val">{{ captchaQuestion }}</span>
+                </div>
+                <button type="button" class="btn-refresh-captcha" (click)="generateCaptcha()" title="Refresh CAPTCHA">
+                  🔄 Refresh
+                </button>
+              </div>
+              <div class="captcha-answer-row">
+                <input
+                  type="number"
+                  [(ngModel)]="captchaInput"
+                  [ngModelOptions]="{standalone: true}"
+                  class="efile-input captcha-input"
+                  [class.input-success]="captchaVerified"
+                  [class.input-error]="captchaError"
+                  placeholder="Enter answer here"
+                  (input)="captchaError = false; captchaVerified = false"
+                />
+                <button type="button" class="btn-verify" (click)="verifyCaptcha()">
+                  Verify
+                </button>
+              </div>
+              <span class="captcha-ok" *ngIf="captchaVerified">✅ CAPTCHA verified successfully</span>
+              <span class="field-error" *ngIf="captchaError">❌ Wrong answer. Please try again.</span>
+            </div>
+          </div>
+        </div>-->
+
+        
+        <!-- Action Buttons -->
+        <div class="field-row btn-row">
+          <div class="field-label"></div>
+          <div class="field-input-wrap btn-wrap">
+            <button
+              type="submit"
+              class="btn-search"
+              [disabled]="isLoading || signupForm.invalid">
+              <span class="btn-dot" [class.loading]="isLoading"></span>
+              {{ isLoading ? 'Registering...' : 'Register' }}
+            </button>
+            <button type="button" class="btn-clear" (click)="signupForm.reset(); errorMessage=''; successMessage=''">
+              Clear
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Login Link -->
+      <div class="signup-hint">
+        <p>Already have an account? 
+          <a routerLink="/login" class="login-link">Login here →</a></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <!-- <footer class="efile-footer">
+    <span>© Ministry of Information &amp; Broadcasting, Government of India</span>
+    <span class="footer-sep">|</span>
+    <span>Intra Platform</span>
+  </footer> -->
+
+</div>

@@ -1,0 +1,1388 @@
+<!-- src/app/components/search-dashboard/search-dashboard.component.html -->
+
+<div class="eoffice-wrapper">
+
+  <!-- ================= PAGE TITLE ================= -->
+  <div class="page-title-bar">
+
+    <div class="page-title-left">
+      <div class="title-icon">📋</div>
+      <div>
+        <div class="page-title">Search Portal</div>
+      </div>
+    </div>
+
+    <div class="page-title-right">
+
+      <div class="user-pill">
+        <div class="user-avatar">
+          {{ currentUser ? currentUser.charAt(0).toUpperCase() : 'U' }}
+        </div>
+        <span class="user-name">{{ currentUser }}</span>
+        <span class="user-chevron">▼</span>
+      </div>
+
+      <button class="logout-btn" (click)="logout()">
+        <span class="logout-icon">⎋</span>
+        Logout
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="main-content">
+
+    <!-- ================= SEARCH CARD ================= -->
+    <div class="search-card">
+
+      <!-- ── TAB BAR ── -->
+      <div class="tab-bar">
+        <button class="tab-btn" [class.active]="activeTab === 'search'" (click)="setTab('search')">
+          <span class="tab-icon">🔍</span> Search Records
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'advanced'" (click)="setTab('advanced')">
+          <span class="tab-icon">⚙️</span> Advanced Search
+        </button>
+        <button class="tab-btn" [class.active]="activeTab === 'insert'" (click)="setTab('insert')">
+          <span class="tab-icon">➕</span> Insert Record
+        </button>
+        <button type="button" class="tab-btn" [class.active]="activeTab === 'Press'" (click)="openPrintingPress()">
+          <span class="tab-icon">🏭</span> Printing Press
+        </button>
+      </div>
+
+      <!-- ── SEARCH TAB ── -->
+      <div class="tab-content" *ngIf="activeTab === 'search'">
+        <div class="qs-hero">
+          <div class="qs-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Quick Search
+          </div>
+          <p class="qs-sub">Search filing records by Diary Number, Registration Number, or Title Name</p>
+
+          <div class="qs-bar">
+            <div class="qs-input-wrap">
+              <span class="qs-input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <input
+                class="qs-input"
+                type="text"
+                [(ngModel)]="searchInput"
+                placeholder="Enter Diary No / Reg No / Title Name..."
+                (keyup.enter)="searchRecords()"
+                autocomplete="off"
+              />
+              <button *ngIf="searchInput" class="qs-clear" type="button" (click)="searchInput = ''">✕</button>
+            </div>
+            <button class="qs-btn" (click)="searchRecords()" [disabled]="loading || !searchInput">
+              <span *ngIf="!loading">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Search
+              </span>
+              <span *ngIf="loading">⏳ Searching...</span>
+            </button>
+          </div>
+
+          <div class="qs-chips">
+            <span class="qs-chip-label">Search by:</span>
+            <span class="qs-chip">📄 Diary Number</span>
+            <span class="qs-chip">🔖 Registration No.</span>
+            <span class="qs-chip">📰 Title Name</span>
+          </div>
+        </div>
+      </div>
+      <!-- END SEARCH TAB -->
+
+      <!-- ── ADVANCED SEARCH TAB ── -->
+      <div class="tab-content advanced-tab" *ngIf="activeTab === 'advanced'">
+        <form [formGroup]="advancedForm" (ngSubmit)="searchAdvanced()">
+          <div class="adv-grid">
+
+            <div class="form-group">
+  <label>Diary Number <span class="required">*</span></label>
+  <input class="form-control" formControlName="diaryNumber" placeholder="Diary Number"
+    [class.input-error]="insertForm.get('diaryNumber')?.invalid && insertForm.get('diaryNumber')?.touched" />
+  <span class="field-error" *ngIf="insertForm.get('diaryNumber')?.invalid && insertForm.get('diaryNumber')?.touched">
+    Diary Number is required
+  </span>
+</div>
+
+            <div class="form-group">
+              <label class="field-label">Registration Number</label>
+              <input class="form-control" formControlName="regNo" placeholder="Registration Number" />
+            </div>
+
+            <div class="form-group">
+  <label>Title Name <span class="required">*</span></label>
+  <input class="form-control" formControlName="titleName" placeholder="Title Name"
+    [class.input-error]="insertForm.get('titleName')?.invalid && insertForm.get('titleName')?.touched" />
+  <span class="field-error" *ngIf="insertForm.get('titleName')?.invalid && insertForm.get('titleName')?.touched">
+    Title Name is required (min 3 characters)
+  </span>
+</div>
+
+           <div class="form-group">
+  <label>Owner Name <span class="required">*</span></label>
+  <input type="text" formControlName="ownerName" class="form-control" placeholder="Owner Name"
+    [class.input-error]="insertForm.get('ownerName')?.invalid && insertForm.get('ownerName')?.touched" />
+  <span class="field-error" *ngIf="insertForm.get('ownerName')?.invalid && insertForm.get('ownerName')?.touched">
+    Owner Name is required (min 3 characters)
+  </span>
+</div>
+
+            <div class="form-group">
+  <label>Publisher Name <span class="required">*</span></label>
+  <input type="text" formControlName="publisherName" class="form-control" placeholder="Publisher Name"
+    [class.input-error]="insertForm.get('publisherName')?.invalid && insertForm.get('publisherName')?.touched" />
+  <span class="field-error" *ngIf="insertForm.get('publisherName')?.invalid && insertForm.get('publisherName')?.touched">
+    Publisher Name is required (min 3 characters)
+  </span>
+</div>
+
+            <div class="form-group">
+              <label class="field-label">Periodicity</label>
+              <select class="form-control" formControlName="periodicity">
+                <option value="">— All —</option>
+                <option *ngFor="let p of periodicityOptions" [value]="p.value">{{ p.label }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+  <label>State <span class="required">*</span></label>
+  <select class="form-control" formControlName="state" (change)="onStateChange($event)"
+    [class.input-error]="insertForm.get('state')?.invalid && insertForm.get('state')?.touched">
+    <option value="">Select State</option>
+    <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+  </select>
+  <span class="field-error" *ngIf="insertForm.get('state')?.invalid && insertForm.get('state')?.touched">
+    Please select State
+  </span>
+</div>
+
+            <div class="form-group">
+              <label class="field-label">District</label>
+              <select class="form-control" formControlName="district">
+                <option value="">Select District</option>
+                <option *ngFor="let district of districts" [value]="district">{{ district }}</option>
+              </select>
+            </div>
+
+            <div class="adv-actions">
+              <button type="submit" class="btn-primary" [disabled]="loading">
+                <span *ngIf="!loading">🔍 Search</span>
+                <span *ngIf="loading">⏳ Searching...</span>
+              </button>
+              <button type="button" class="btn-secondary" (click)="resetAdvanced()">↺ Reset</button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+      <!-- END ADVANCED TAB -->
+
+      <!-- ── INSERT FORM TAB ── -->
+      <div class="tab-content advanced-tab" *ngIf="activeTab === 'insert'">
+        <form [formGroup]="insertForm" (ngSubmit)="submitInsertForm()">
+
+          <div class="form-section">
+            <h3>Insert Record</h3>
+            <div class="adv-grid">
+              <div class="form-group">
+                <label>Diary Number</label>
+                <input class="form-control" formControlName="diaryNumber" placeholder="Diary Number" />
+              </div>
+              <div class="form-group">
+                <label>Registration Number</label>
+                <input class="form-control" formControlName="regNo" placeholder="Registration Number" />
+              </div>
+              <div class="form-group">
+                <label>Title Name</label>
+                <input class="form-control" formControlName="titleName" placeholder="Title Name" />
+              </div>
+              <div class="form-group">
+                <label>Other</label>
+                <button type="button" class="btn-secondary" (click)="toggleOtherOptions()">Other +</button>
+              </div>
+            </div>
+
+            <div *ngIf="showOtherOptions" class="other-section">
+              <div class="radio-group">
+                <label><input type="radio" formControlName="searchType" value="REG_NO" /> Reg No</label>
+                <label><input type="radio" formControlName="searchType" value="TITLE_NAME" /> Title Name</label>
+                <label><input type="radio" formControlName="searchType" value="DIARY_NO" /> Diary No</label>
+                <label><input type="radio" formControlName="searchType" value="COMPUTER_NO" /> Computer No</label>
+                <label><input type="radio" formControlName="searchType" value="OTHER" /> Other</label>
+              </div>
+              <input type="text" formControlName="otherValue" class="form-control" placeholder="Specify Details" />
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>📋 Other Details</h3>
+            <div class="adv-grid">
+              <div class="form-group">
+                <label>Periodicity</label>
+                <select class="form-control" formControlName="periodicity">
+                  <option value="">Select Periodicity</option>
+                  <option value="DAILY">DAILY</option>
+                  <option value="WEEKLY">WEEKLY</option>
+                  <option value="FORTNIGHTLY">FORTNIGHTLY</option>
+                  <option value="MONTHLY">MONTHLY</option>
+                  <option value="QUARTERLY">QUARTERLY</option>
+                  <option value="YEARLY">YEARLY</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Language</label>
+                <input class="form-control" formControlName="language" placeholder="Language" />
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <select class="form-control" formControlName="state" (change)="onStateChange($event)">
+                  <option value="">Select State</option>
+                  <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>District</label>
+                <select class="form-control" formControlName="district">
+                  <option value="">Select District</option>
+                  <option *ngFor="let district of districts" [value]="district">{{ district }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Pin Code</label>
+                <input class="form-control" formControlName="pinCode" placeholder="Pin Code" />
+              </div>
+              <div class="form-group">
+                <label>Status</label>
+                <select class="form-control" formControlName="status">
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="INACTIVE">DEFUNCT</option>
+                  <!-- <option value="PENDING">PENDING</option> -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Owner Name</label>
+                <input type="text" formControlName="ownerName" class="form-control" placeholder="Owner Name" />
+              </div>
+              <div class="form-group">
+                <label>Publisher Name</label>
+                <input type="text" formControlName="publisherName" class="form-control" placeholder="Publisher Name" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>📬 DAK Section</h3>
+            <div class="adv-grid">
+              <div class="form-group">
+                <label>Received Date</label>
+                <input type="date" class="form-control" formControlName="dakReceivedDate" />
+              </div>
+              <div class="form-group">
+                <label>Diary No</label>
+                <input class="form-control" formControlName="dakDiaryNo" placeholder="DAK Diary Number" />
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <select class="form-control" formControlName="dakState" (change)="onStateChange($event)">
+                  <option value="">Select State</option>
+                  <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>District</label>
+                <select class="form-control" formControlName="dakDistrict">
+                  <option value="">Select District</option>
+                  <option *ngFor="let district of districts" [value]="district">{{ district }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Section</label>
+                <input class="form-control" formControlName="dakSection" placeholder="Section Name" />
+              </div>
+              <div class="form-group">
+                <label>Processed</label>
+                <input class="form-control" formControlName="dakProcessed" placeholder="Processed By" />
+              </div>
+              <div class="form-group">
+                <label>Forward To</label>
+                <input class="form-control" formControlName="dakForwardTo" placeholder="Forward To" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="upload-header">
+              <h3>📂 Upload Documents</h3>
+            </div>
+
+            <div class="upload-card-item">
+              <div class="upload-icon-box"><i class="ti ti-file-type-pdf"></i></div>
+              <div class="upload-info">
+                <div class="upload-label">Document 1</div>
+                <div class="upload-filename">{{ document1 ? document1.name : 'No file selected' }}</div>
+              </div>
+              <label class="upload-choose-btn">
+                Choose File
+                <input #doc1Input type="file" hidden accept=".pdf" (change)="onFile1Selected($event)">
+              </label>
+              <button *ngIf="document1?.name" type="button" class="upload-remove-btn" (click)="removeDocument1()"></button>
+            </div>
+
+            <div class="upload-card-item">
+              <div class="upload-icon-box"><i class="ti ti-file-type-pdf"></i></div>
+              <div class="upload-info">
+                <div class="upload-label">Document 2</div>
+                <div class="upload-filename">{{ document2 ? document2.name : 'No file selected' }}</div>
+              </div>
+              <label class="upload-choose-btn">
+                Choose File
+                <input #doc2Input type="file" hidden accept=".pdf" (change)="onFile2Selected($event)">
+              </label>
+              <button *ngIf="document2?.name" type="button" class="upload-remove-btn" (click)="removeDocument2()"></button>
+            </div>
+
+            <div class="other-doc-section">
+              <div *ngFor="let doc of otherDocuments; let i = index" class="upload-card-item">
+                <div class="upload-icon-box"><i class="ti ti-file-type-pdf"></i></div>
+                <div class="upload-info">
+                  <div class="upload-label">Other Document {{ i + 1 }}</div>
+                  <div class="upload-filename">
+                    {{ otherDocuments[i] ? otherDocuments[i].name : 'No file selected' }}
+                  </div>
+                </div>
+                <label class="upload-choose-btn">
+                  Choose File
+                  <input type="file" hidden accept=".pdf" (change)="onOtherDocumentSelected($event, i)">
+                </label>
+                <button *ngIf="otherDocuments[i]?.name" type="button" class="upload-remove-btn" (click)="removeOtherDocument(i)"></button>
+              </div>
+
+              <div class="add-doc-btn-container">
+                <button
+                  *ngIf="document1 && document2"
+                  type="button"
+                  class="upload-add-btn"
+                  [disabled]="isAddButtonDisabled()"
+                  (click)="addMoreDocument()">
+                  <i class="ti ti-plus"></i> Add Other Document
+                </button>
+              </div>
+            </div>
+
+            <div class="adv-actions">
+              <button type="submit" class="btn-primary" [disabled]="insertForm.invalid || loading">
+  💾 Save
+</button>
+              <button type="button" class="btn-secondary" (click)="resetForm()">↺ Reset</button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <!-- END INSERT TAB -->
+
+      <!-- ── PRINTING PRESS TAB ── -->
+      <div class="tab-content" *ngIf="activeTab === 'Press'">
+        <app-press-search></app-press-search>
+      </div>
+      <!-- END PRESS TAB -->
+
+      <!-- ── ERROR MESSAGE ── -->
+      <div class="alert alert-error" *ngIf="searched && errorMsg">⚠️ {{ errorMsg }}</div>
+
+      <!-- ── RESULTS TABLE ── -->
+      <div class="results-card" *ngIf="results && results.length > 0">
+        <div class="results-header">
+          <h3>
+            📊 Search Results
+            <span class="count-badge">{{ results.length }} records found</span>
+          </h3>
+          <!-- <button class="btn-export">⬇ Export</button> -->
+        </div>
+        <div class="table-responsive">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Diary Number</th>
+                <th>Reg. No.</th>
+                <th>Title Name</th>
+                <th>Owner</th>
+                <th>Publisher</th>
+                <th>Periodicity</th>
+                <th>State / District</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+<tr
+  *ngFor="let f of results; let i = index"
+  [class.row-selected]="selectedFiling?.id === f.id">
+                <!-- (click)="selectFiling(f)"> -->
+                <td>{{ i + 1 }}</td>
+                <td class="diary-cell">{{ f.diaryNumber }}</td>
+                <td>{{ f.regNo || '—' }}</td>
+                <td class="title-cell">{{ f.titleName }}</td>
+                <td>
+                  {{ f.ownerName }}
+                  <small>Owner</small>
+                </td>
+                <td>
+                  {{ f.publisherName }}
+                  <small>Publisher</small>
+                </td>
+                <td>
+                  <span class="badge-periodicity" [ngClass]="getPeriodicityClass(f.periodicity)">
+                    {{ f.periodicity }}
+                  </span>
+                </td>
+                <td>
+                  {{ f.state }}
+                  <small>{{ f.district }}</small>
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(f.status)">{{ f.status }}</span>
+                </td>
+                <td class="actions-cell">
+  <button class="btn-view" (click)="selectFiling(f)" title="View Details">👁 View</button>
+</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+<div class="accordion-wrapper" *ngIf="selectedFiling">
+
+  <!-- Title Bar -->
+  <div class="accordion-title-bar">
+    <!-- <span>📋 {{ selectedFiling.titleName }} — {{ selectedFiling.diaryNumber }}</span> -->
+    <!-- <button class="btn-close-white" (click)="closeDetailPanel()">✕ Close</button> -->
+  </div>
+
+  <!-- 1. Periodicals Details -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('periodicals')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('periodicals') ? activeDetailPanel.delete('periodicals') : activeDetailPanel.add('periodicals')">
+      <span>📋 Title Registrartion</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('periodicals') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('periodicals')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Title Name</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+          <div class="detail-row"><span>Language</span><strong>{{ $any(selectedFiling).language || '—' }}</strong></div>
+          <div class="detail-row"><span>Registration Date</span><strong>{{ formatDate(selectedFiling.filing_date) }}</strong></div>
+          <!-- <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div> -->
+        </div>
+        <!-- <div class="detail-section">
+          <h4>👤 Ownership</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div> -->
+        <div class="detail-section">
+          <h4>📍 Place of publication</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+          <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.address }}</strong></div>
+          <div class="detail-row"><span>Pincode</span><strong>{{ $any(selectedFiling).pop_pincode || '—' }}</strong></div>
+        </div>
+        <!-- <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div> -->
+        <!-- <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div> -->
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Ownership Details -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('ownership')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('ownership') ? activeDetailPanel.delete('ownership') : activeDetailPanel.add('ownership')">
+      <span>👤 Ownership Details</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('ownership') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('ownership')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Email</span><strong>{{ $any(selectedFiling).ownerEmail || '—' }}</strong></div>
+          <div class="detail-row"><span>Contact No.</span><strong>{{ $any(selectedFiling).ownerMobileNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Category</span><strong>{{ $any(selectedFiling).ownerCategory || '—' }}</strong></div>
+          
+          <!-- <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div> -->
+        </div>
+        <!-- <div class="detail-section">
+          <h4>👤 Ownership</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Email</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Mobile No.</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div> -->
+        <div class="detail-section">
+          <h4>📍 Owner Address</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+          <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.ownerAddress || '—' }}</strong></div>
+          <div class="detail-row"><span>Pincode</span><strong>{{ selectedFiling.ownerPincode || '—' }}</strong></div>
+        </div>
+        <!-- <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div> -->
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Publisher Details -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('publisher')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('publisher') ? activeDetailPanel.delete('publisher') : activeDetailPanel.add('publisher')">
+      <span>🏢 Publisher Details</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('publisher') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('publisher')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Publisher Name</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Email</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Contact No.</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <!-- <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div> -->
+        </div>
+        <!-- <div class="detail-section">
+          <h4>🏢 Publisher</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div> -->
+        <div class="detail-section">
+          <h4>📍 Publisher Address</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+          <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.address }}</strong></div>
+          <div class="detail-row"><span>Pincode </span><strong>{{ $any(selectedFiling).pincode || '—' }}</strong></div>
+        </div>
+        <!-- <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div> -->
+        <!-- <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div> -->
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Editor Details -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('editor')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('editor') ? activeDetailPanel.delete('editor') : activeDetailPanel.add('editor')">
+      <span>✍️ Editor Details</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('editor') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('editor')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Editor Name</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Email</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Contact No.</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <!-- <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div> -->
+        </div>
+        <!-- <div class="detail-section">
+          <h4>🏢 Publisher</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div> -->
+        <div class="detail-section">
+          <h4>📍 Editor Address</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+          <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.address }}</strong></div>
+          <div class="detail-row"><span>Pincode </span><strong>{{ $any(selectedFiling).pincode || '—' }}</strong></div>
+        </div>
+        <!-- <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div> -->
+        <!-- <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div> -->
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Printer Details -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('printer')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('printer') ? activeDetailPanel.delete('printer') : activeDetailPanel.add('printer')">
+      <span>🖨️ Printer Details</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('printer') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('printer')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Printing Press Details</h4>
+          <div class="detail-row"><span>Press Id</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Press Name</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <!-- <div class="detail-row"><span>Keeper Name</span><strong>{{ selectedFiling.periodicity }}</strong></div> -->
+          <div class="detail-row"><span>Approved date</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+           <!-- <div class="detail-row">
+             <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div>  -->
+        </div> 
+                <div class="detail-section">
+          <h4>📍Press Address</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+          <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.address }}</strong></div>
+          <div class="detail-row"><span>Pincode</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+        </div>
+        <div class="detail-grid">
+        <div class="detail-section">
+      
+          <h4>🖨️ Keeper Details</h4>
+          <div class="detail-row"><span>Keeper Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Email</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Contact No.</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+          <!-- <div class="detail-row"><span>Approved date</span><strong>{{ selectedFiling.periodicity }}</strong></div> -->
+        </div>
+         <div class="detail-section">
+          <h4>📍Keeper Address</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+          <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.address }}</strong></div>
+          <div class="detail-row"><span>Pincode</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+</div>
+        <!-- <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div> -->
+        <!-- <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div> -->
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    
+  </div>
+
+  <!-- 6. Annual Statement -->
+     <div class="accordion-item" [class.open]="activeDetailPanel.has('annual')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('annual') ? activeDetailPanel.delete('annual') : activeDetailPanel.add('annual')">
+      <span>� Annual Statement</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('annual') ? '▲' : '▼' }}</span>
+    </div>
+<div class="accordion-body" *ngIf="activeDetailPanel.has('annual')">
+  <div class="annual-body-inner">   <!-- ← add this wrapper -->
+
+    <div class="detail-grid">
+      <div class="detail-section">
+        <h4>🗂 Details</h4>
+        <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+        <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
+      </div>
+      <div class="detail-section">
+        <h4>📊 Annual Info</h4>
+        <div class="detail-row"><span>Language</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+        <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+      </div>
+    </div>
+
+    <div class="annual-table-container">
+      <div class="annual-table-header">PENALTY DETAILS</div>
+      <table class="annual-penalty-table">
+        <thead>
+          <tr>
+            <th>S.No.</th>
+            <th>Year</th>
+            <th>Penalty Due</th>
+            <th>Penalty Paid</th>
+            <th>e-Filing of Annual Statement</th>
+            <th>Within Due Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td><td>2024-25</td>
+            <td class="amt-due">1000</td><td>0</td>
+            <td class="status-no">No</td><td class="status-no">No</td>
+          </tr>
+          <tr>
+            <td>2</td><td>2023-24</td>
+            <td class="amt-due">1000</td><td>0</td>
+            <td class="status-no">No</td><td class="status-no">No</td>
+          </tr>
+          <tr>
+            <td>3</td><td>2022-23</td>
+            <td class="amt-due">1000</td><td>0</td>
+            <td class="status-no">No</td><td class="status-no">No</td>
+          </tr>
+          <tr>
+            <td>12</td><td>2011-12</td>
+            <td>0</td><td class="amt-paid">1000</td>
+            <td class="status-no">No</td><td class="status-no">No</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>  <!-- end annual-body-inner -->
+</div>
+</div>
+
+
+  <!-- 7. Revise Registration -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('revise')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('revise') ? activeDetailPanel.delete('revise') : activeDetailPanel.add('revise')">
+      <span>📝 Revise Registration</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('revise') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('revise')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>📝 Revision Info</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📍 State/District</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div>
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Ownership Transfer -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('transfer')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('transfer') ? activeDetailPanel.delete('transfer') : activeDetailPanel.add('transfer')">
+      <span>🔄 Ownership Transfer</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('transfer') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('transfer')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🔄 Transfer Info</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📍 State/District</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div>
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Regularity -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('regularity')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('regularity') ? activeDetailPanel.delete('regularity') : activeDetailPanel.add('regularity')">
+      <span>📅 Regularity</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('regularity') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('regularity')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>📅 Regularity Info</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📍 State/District</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div>
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Newsprint -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('newsprint')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('newsprint') ? activeDetailPanel.delete('newsprint') : activeDetailPanel.add('newsprint')">
+      <span>📰 Newsprint</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('newsprint') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('newsprint')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>📰 Newsprint Info</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📍 State/District</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div>
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Circulation Verification -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('circulation')">
+    <div class="accordion-header" (click)="activeDetailPanel.has('circulation') ? activeDetailPanel.delete('circulation') : activeDetailPanel.add('circulation')">
+      <span>🔁 Circulation Verification</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('circulation') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('circulation')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🔁 Circulation Info</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📍 State/District</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div>
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. Ceasing/Cancellation -->
+  <div class="accordion-item" [class.open]="activeDetailPanel.has('ceasing') ">
+    <div class="accordion-header" (click)="activeDetailPanel.has('ceasing') ? activeDetailPanel.delete('ceasing') : activeDetailPanel.add('ceasing')">
+      <span>🚫 Ceasing/Cancellation</span>
+      <span class="accordion-arrow">{{ activeDetailPanel.has('ceasing') ? '▲' : '▼' }}</span>
+    </div>
+    <div class="accordion-body" *ngIf="activeDetailPanel.has('ceasing')">
+      <div class="detail-grid">
+        <div class="detail-section">
+          <h4>🗂 Details</h4>
+          <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+          <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+          <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
+          <div class="detail-row">
+            <span>Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status }}</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🚫 Ceasing Info</h4>
+          <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
+          <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+          <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📍 State/District</h4>
+          <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
+          <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
+        </div>
+        <div class="detail-section">
+          <h4>📂 Documents</h4>
+          <div class="doc-cards-grid">
+            <div *ngFor="let doc of $any(selectedFiling).documents || []; let i = index" class="doc-card">
+              <div class="doc-card-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828" stroke-width="0.5"/>
+                  <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a"/>
+                  <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">PDF</text>
+                </svg>
+              </div>
+              <div class="doc-card-info">
+                <div class="doc-card-name" [title]="doc">{{ getShortName(doc) }}</div>
+                <div class="doc-card-slot">Slot {{ i + 1 }}</div>
+              </div>
+              <div class="doc-card-actions">
+                <button class="doc-btn-view" (click)="viewDocument(selectedFiling!, doc)" title="Open PDF">👁 View</button>
+              </div>
+            </div>
+            <div *ngIf="!($any(selectedFiling).documents?.length)" class="doc-empty">No documents attached</div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>🕐 Timestamps</h4>
+          <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong></div>
+          <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong></div>
+        </div>
+        <!-- <div class="view-full-details-bar">
+          <button class="btn-view-full" (click)="openMoreDetails(selectedFiling)">🔍 More Details</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Close All Button -->
+<div class="accordion-close-bar">
+  <button class="btn-close-all" (click)="closeDetailPanel()">
+    <span>✕</span> Close All
+  </button>
+</div>
+
+</div>
+<!-- END ACCORDION -->
+      <!-- END DETAIL PANEL -->
+
+      <!-- ── MORE DETAILS CARD ── -->
+      <!-- <div class="more-details-card" *ngIf="moreDetailsFiling">
+        <div class="more-details-header">
+          <h3>📋 More Details — {{ moreDetailsFiling.diaryNumber }}</h3>
+          <button class="btn-close" (click)="closeMoreDetails()">✕ Close</button>
+        </div>
+
+        <div class="more-details-grid">
+
+          <div class="detail-box">
+            <h4>🗂 Registration Details</h4>
+            <p><b>Reg No:</b> {{ moreDetailsFiling.regNo || '—' }}</p>
+            <p><b>Diary No:</b> {{ moreDetailsFiling.diaryNumber || '—' }}</p>
+            <p><b>Title Name:</b> {{ moreDetailsFiling.titleName || '—' }}</p>
+            <p><b>Language:</b> {{ $any(moreDetailsFiling).language || '—' }}</p>
+            <p><b>Periodicity:</b> {{ moreDetailsFiling.periodicity || '—' }}</p>
+            <p><b>Status:</b> {{ moreDetailsFiling.status || '—' }}</p>
+          </div>
+
+          <div class="detail-box">
+            <h4>👤 Owner Details</h4>
+            <p><b>Name:</b> {{ moreDetailsFiling.ownerName || '—' }}</p>
+            <p><b>Address:</b> {{ moreDetailsFiling.ownerAddress || '—' }}</p>
+            <p><b>State:</b> {{ moreDetailsFiling.ownerState || '—' }}</p>
+            <p><b>District:</b> {{ moreDetailsFiling.ownerDistrict || '—' }}</p>
+            <p><b>City:</b> {{ moreDetailsFiling.ownerCity || '—' }}</p>
+            <p><b>Pin Code:</b> {{ moreDetailsFiling.ownerPincode || '—' }}</p>
+          </div>
+
+          <div class="detail-box">
+            <h4>🏢 Publisher Details</h4>
+            <p><b>Name:</b> {{ moreDetailsFiling.publisherName || '—' }}</p>
+            <p><b>Address:</b> {{ moreDetailsFiling.publisherAddress || '—' }}</p>
+            <p><b>State:</b> {{ moreDetailsFiling.publisherState || '—' }}</p>
+            <p><b>District:</b> {{ moreDetailsFiling.publisherDistrict || '—' }}</p>
+            <p><b>City:</b> {{ moreDetailsFiling.publisherCity || '—' }}</p>
+            <p><b>Pin Code:</b> {{ moreDetailsFiling.publisherPincode || '—' }}</p>
+          </div>
+
+          <div class="detail-box">
+            <h4>✍️ Editor Details</h4>
+            <p><b>Name:</b> {{ moreDetailsFiling.editorName || '—' }}</p>
+            <p><b>Address:</b> {{ moreDetailsFiling.editorAddress || '—' }}</p>
+            <p><b>State:</b> {{ moreDetailsFiling.editorState || '—' }}</p>
+            <p><b>District:</b> {{ moreDetailsFiling.editorDistrict || '—' }}</p>
+            <p><b>City:</b> {{ moreDetailsFiling.editorCity || '—' }}</p>
+            <p><b>Pin Code:</b> {{ moreDetailsFiling.editorPincode || '—' }}</p>
+          </div>
+
+          <div class="detail-box">
+            <h4>📍 Place of Publication</h4>
+            <p><b>Address:</b> {{ $any(moreDetailsFiling).publicationAddress || '—' }}</p>
+            <p><b>State:</b> {{ $any(moreDetailsFiling).publicationState || '—' }}</p>
+            <p><b>District:</b> {{ $any(moreDetailsFiling).publicationDistrict || '—' }}</p>
+            <p><b>City:</b> {{ $any(moreDetailsFiling).publicationCity || '—' }}</p>
+            <p><b>Pin Code:</b> {{ $any(moreDetailsFiling).publicationPinCode || '—' }}</p>
+          </div>
+
+          <div class="detail-box">
+            <h4>🖨 Printing Press Details</h4>
+            <p><b>Printer Name:</b> {{ $any(moreDetailsFiling).printerName || '—' }}</p>
+            <p><b>Press Name:</b> {{ $any(moreDetailsFiling).pressName || '—' }}</p>
+            <p><b>Address:</b> {{ $any(moreDetailsFiling).pressAddress || '—' }}</p>
+            <p><b>State:</b> {{ $any(moreDetailsFiling).pressState || '—' }}</p>
+            <p><b>District:</b> {{ $any(moreDetailsFiling).pressDistrict || '—' }}</p>
+            <p><b>City:</b> {{ $any(moreDetailsFiling).pressCity || '—' }}</p>
+            <p><b>Pin Code:</b> {{ $any(moreDetailsFiling).pressPinCode || '—' }}</p>
+          </div>
+
+          <div class="detail-box">
+            <h4>📝 Revision Details</h4>
+            <p><b>Total Revisions:</b> {{ $any(moreDetailsFiling).revisionCount || 0 }}</p>
+            <p><b>Revision Date:</b> {{ $any(moreDetailsFiling).revisions?.[0]?.revisionDate || '—' }}</p>
+            <p><b>Reason:</b> {{ $any(moreDetailsFiling).revisions?.[0]?.reason || '—' }}</p>
+            <p><b>Changes:</b> {{ $any(moreDetailsFiling).revisions?.[0]?.changes || '—' }}</p>
+          </div>
+
+        </div>
+
+        <div class="dak-btn-bar" *ngIf="moreDetailsFiling">
+          <button class="btn-dak-details" (click)="toggleDakDetails()">
+            📬 DAK Details
+          </button>
+        </div>
+
+        <div class="dak-details-card" *ngIf="showDakDetails && moreDetailsFiling">
+          <div class="dak-details-header">
+            <h3>📬 DAK Details — {{ moreDetailsFiling.diaryNumber }}</h3>
+            <button class="btn-close" (click)="showDakDetails = false">✕ Close</button>
+          </div>
+          <div class="dak-details-grid">
+            <div class="dak-detail-row"><span>Received Date</span><strong>{{ $any(moreDetailsFiling).dakReceivedDate || '—' }}</strong></div>
+            <div class="dak-detail-row"><span>Diary No</span><strong>{{ $any(moreDetailsFiling).dakDiaryNo || '—' }}</strong></div>
+            <div class="dak-detail-row"><span>State</span><strong>{{ $any(moreDetailsFiling).dakState || '—' }}</strong></div>
+            <div class="dak-detail-row"><span>District</span><strong>{{ $any(moreDetailsFiling).dakDistrict || '—' }}</strong></div>
+            <div class="dak-detail-row"><span>Section</span><strong>{{ $any(moreDetailsFiling).dakSection || '—' }}</strong></div>
+            <div class="dak-detail-row"><span>Processed</span><strong>{{ $any(moreDetailsFiling).dakProcessed || '—' }}</strong></div>
+            <div class="dak-detail-row"><span>Forward To</span><strong>{{ $any(moreDetailsFiling).dakForwardTo || '—' }}</strong></div>
+          </div>
+        </div>
+
+      </div> -->
+      <!-- END MORE DETAILS CARD -->
+
+    </div>
+    <!-- END SEARCH CARD -->
+
+    <!-- ── PDF PREVIEW ── -->
+    <div class="results-card" *ngIf="pdfSourceUrl">
+      <div class="results-header">
+        <h3>📄 PDF Preview</h3>
+        <button class="btn-close" (click)="closePdfPreview()">✕ Close Preview</button>
+      </div>
+      <pdf-viewer
+        [src]="pdfSourceUrl"
+        [render-text]="true"
+        [original-size]="false"
+        [show-all]="true"
+        [fit-to-page]="true"
+        style="width:100%;height:700px;display:block">
+      </pdf-viewer>
+    </div>
+
+  </div>
+  <!-- END MAIN CONTENT -->
+
+</div>
+<!-- END EOFFICE WRAPPER -->
