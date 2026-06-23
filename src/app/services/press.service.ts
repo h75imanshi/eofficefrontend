@@ -7,7 +7,7 @@ import { PressFullDetail, PressSearchResult } from '../models/press.model';
 })
 export class PressService {
 
-  private baseUrl = 'http://10.197.4.2:8181/api/press';
+  private baseUrl = 'http://localhost:8181/api/press';
 
   constructor(private http: HttpClient) {}
 
@@ -46,23 +46,33 @@ export class PressService {
 
   getKeeperDetails(id: string) {
   return this.http.get<any[]>(
-    `http://10.197.4.2:8181/api/keeper/press/${id}`
+    `http://localhost:8181/api/keeper/press/${id}`
   );
 }
   getMachineDetails(id: string) {
   return this.http.get<any[]>(
-    `http://10.197.4.2:8181/api/machine/press/${id}`
+    `http://localhost:8181/api/machine/press/${id}`
   );
 }
 
-  // Newspaper details can be fetched from a separate endpoint
+  //Newspaper details can be fetched from a separate endpoint
 getNewspapersByPressName(pressName: string) {
 
   return this.http.get<any[]>(
-    `http://10.197.4.2:8181/api/newspaper/press-name/${encodeURIComponent(pressName.trim())}`
+    `http://localhost:8181/api/newspaper/press-name/${encodeURIComponent(pressName.trim())}`
   );
 
 }
+
+
+
+// //Newspaper new api using a press application no//
+// getNewspapersByApplicationNo(appNo: string) {
+//   return this.http.get(
+//     `http://localhost:8181/api/newspaper/application?appNo=${encodeURIComponent(appNo)}`
+//   );
+// }
+
   getStates() {
     return this.http.get<string[]>(
       `${this.baseUrl}/states`
@@ -74,4 +84,19 @@ getNewspapersByPressName(pressName: string) {
       `${this.baseUrl}/districts?stateName=${stateName}`
     );
   }
+
+// map sevice api//
+  getCoordinates(address: string) {
+
+  return this.http.get<any>(
+    'http://localhost:8181/api/map/geocode',
+    {
+      params: { address }
+    }
+  );
+
+}
+getRoute(url: string) {
+  return this.http.get(url);
+}
 }

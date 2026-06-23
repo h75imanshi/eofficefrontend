@@ -293,14 +293,15 @@ tbody {
 .info-row {
   display: flex;
   border-bottom: 1px solid #eef2f7;
+   width: 100%;
 
   &:last-child { border-bottom: none; }
 }
 
 .label {
-  width: 220px;
+  width: 250px;
   background: #f7f9fc;
-  padding: 11px 14px;
+  padding: 10px ;
   font-weight: 600;
   font-size: 13px;
   color: #1a3460;
@@ -308,7 +309,7 @@ tbody {
 
 .value {
   flex: 1;
-  padding: 11px 15px;
+  padding: 10px;
   color: #333;
   font-size: 13px;
 }
@@ -366,4 +367,10 @@ tbody {
   background: rgba(255,255,255,.15);
   padding: 3px 10px;
   border-radius: 20px;
+}
+
+
+.map-container {
+  height: 300px;
+  min-height: 300px;
 }

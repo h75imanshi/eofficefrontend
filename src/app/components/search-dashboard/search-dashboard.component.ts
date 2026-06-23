@@ -68,9 +68,13 @@ revisionSubmitting = false;
   successMsg = '';
   currentUser = '';
 
-  periodicityOptions = PERIODICITY_OPTIONS;
+  // Periodicity//
+  periodicities: any[] =[];
   states: string[] = [];
   districts: string[] = [];
+
+  // languages//
+  languages: any[] =[];
 
   // Printing Press
   pressList: any[] = [];
@@ -186,6 +190,8 @@ this.revisionForm = this.fb.group({
 });
     this.loadStates();
     //this.loadPress();
+    this.loadPeriodicities();
+    this.loadLanguages();
 
     
   }
@@ -220,6 +226,54 @@ openPrintingPress(): void {
   // =========================================================
   // SEARCH
   // =========================================================
+
+// Periodicity Record//
+loadPeriodicities(): void {
+
+  this.filingService.getPeriodicities()
+    .subscribe({
+
+      next: (data) => {
+
+        console.log('PERIODICITIES =>', data);
+
+        this.periodicities = data;
+
+      },
+
+      error: (err) => {
+
+        console.error('Periodicity Error', err);
+
+      }
+
+    });
+
+}
+
+// lOAD lANGUAGES//
+loadLanguages() {
+
+  this.filingService.getLanguages()
+    .subscribe({
+
+      next: (data) => {
+
+        console.log('LANGUAGES =>', data);
+
+        this.languages = data;
+
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+      }
+
+    });
+
+}
 
   searchRecords(): void {
 
