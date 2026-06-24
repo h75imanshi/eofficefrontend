@@ -96,7 +96,7 @@ getNewspapersByPressName(pressName: string) {
   );
 
 }
-getRoute(url: string) {
-  return this.http.get(url);
-}
+// getRoute(url: string) {
+//   return this.http.get(url);
+// }
 }

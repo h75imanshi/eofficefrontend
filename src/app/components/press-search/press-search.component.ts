@@ -3,6 +3,7 @@ import {
   OnInit,
   ChangeDetectorRef
 } from '@angular/core';
+import { from } from 'rxjs';
 import 'leaflet-polylinedecorator';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +15,7 @@ import {
   PressFullDetail,
   SearchType
 } from '../../models/press.model';
+import { HttpClient } from '@angular/common/http';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
@@ -56,12 +58,13 @@ export class PressSearchComponent implements OnInit {
   totalNewspapers = 0;
   // map class//
   map!: L.Map;
-  private maps: { [key: string]: L.Map } = {};
-private mapIntervals: { [key: string]: any } = {};
 
-  distance = '';
-  duration = '';
-  direction = '';
+  private animationIntervals: { [key: string]: any } = {};
+
+  distance:string= '';
+  duration: string= '';
+  direction:string= '';
+    maps: { [key: string]: L.Map } = {};
 
   searched = false;
   loading = false;
@@ -72,8 +75,15 @@ private mapIntervals: { [key: string]: any } = {};
   modalDetail: PressFullDetail | null = null;
 
   expandedId: string | null = null;
+   // ===========================================
+  // NAYA STATE — multiple newspaper map ke liye
+  // ===========================================
+  mapLoading: { [key: string]: boolean } = {};
+  failedAddresses: { [key: string]: string[] } = {};   // pressId -> list of newspaper names jinka geocode fail hua
+  mapSummary: { [key: string]: { total: number; plotted: number; failed: number } } = {};
 
   constructor(
+    private http: HttpClient,
     private pressService: PressService,
     private cd: ChangeDetectorRef
   ) { }
@@ -455,29 +465,50 @@ private mapIntervals: { [key: string]: any } = {};
     ];
   }
 
+  // get driving route from public OSRM service
+  getRoute(fromLat: number, fromLon: number, toLat: number, toLon: number) {
+    const url = `https://router.project-osrm.org/route/v1/driving/${fromLon},${fromLat};${toLon},${toLat}?overview=full&geometries=geojson`;
+    return from(fetch(url).then(res => res.json()));
+  }
+
+  
+  // ===========================================
+  // Helper: address string banata hai kisi bhi
+  // press/newspaper row ke fields se
+  // ===========================================
+  private buildPressAddress(): string {
+    return [
+      this.selectedPress?.pressAddress,
+      this.selectedPress?.district,
+      this.selectedPress?.state,
+      this.selectedPress?.pincode
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
+
+  // ===========================================
+  // Helper: chhota delay, Nominatim/OSRM rate
+  // limit (1 req/sec) se bachne ke liye sequential
+  // geocoding karte waqt
+  // ===========================================
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+
   // show mapped//
   showMap(pressId: string): void {
-
+ 
     if (!this.selectedNewspapers?.length) {
       alert('No newspaper found for this press');
       return;
     }
-
-
-
-    console.log(
-      'FIRST NEWSPAPER =>',
-      this.selectedNewspapers[0]
-    );
-
-    const publicationAddress =
-      this.selectedNewspapers[0]?.ppbAddress || '';
-
-    console.log(
-      'Publication Address =>',
-      publicationAddress
-    );
-
+ 
+    console.log('FIRST NEWSPAPER =>', this.selectedNewspapers[0]);
+ 
+    const publicationAddress = this.selectedNewspapers[0]?.ppbAddress || '';
+ 
     const pressAddress = [
       this.selectedPress?.pressAddress,
       this.selectedPress?.district,
@@ -486,212 +517,240 @@ private mapIntervals: { [key: string]: any } = {};
     ]
       .filter(Boolean)
       .join(', ');
-
+ 
     console.log('Publication Address =>', publicationAddress);
     console.log('Press Address =>', pressAddress);
     console.log('selected press =>', this.selectedPress);
+ 
+    if (!publicationAddress || !pressAddress) {
+      alert('Publication ya Press address missing hai, map nahi dikha sakte');
+      return;
+    }
+ 
     let pubGeo: any = null;
     let prsGeo: any = null;
-
-    // STEP 1
-    this.pressService.getCoordinates(publicationAddress)
-      .subscribe({
-        next: (pub) => {
-
-          pubGeo = pub;
-
-          // STEP 2
-          this.pressService.getCoordinates(pressAddress)
-            .subscribe({
-              next: (prs) => {
-
-                prsGeo = prs;
-
-                // ✅ IMPORTANT: fallback handling
-            //  if (!pubGeo?.lat && !prsGeo?.lat) {
-            //       alert("Both locations not found");
-            //       return;
-            //     }
-
-                // 👉 fallback logic
-                const finalPub = pubGeo?.lat ? pubGeo : { lat: 20.5937, lon: 78.9629 }; // India center
-                const finalPrs = prsGeo?.lat ? prsGeo : { lat: 20.5937, lon: 78.9629 };
-
-                this.drawMap(finalPub, finalPrs, pressId);
-              },
-              error: err => console.error("PRESS GEO ERROR", err)
-            });
-
-        },
-        error: err => console.error("PUBLICATION GEO ERROR", err)
-      });
-  }
-  drawMap(pub: any, prs: any, pressId: string): void {
-
-  const pubLat = Number(pub.lat);
-  const pubLon = Number(pub.lon);
-  const prsLat = Number(prs.lat);
-  const prsLon = Number(prs.lon);
-
-  if (
-    isNaN(pubLat) || isNaN(pubLon) ||
-    isNaN(prsLat) || isNaN(prsLon)
-  ) {
-    alert('Invalid coordinates');
-    return;
-  }
-
-  const mapContainer = document.getElementById('map-' + pressId);
-
-  if (!mapContainer) {
-    console.error('Map container NOT FOUND for:', pressId);
-    return;
-  }
-
-  // ✅ REMOVE OLD MAP IF EXISTS
-  if (this.maps[pressId]) {
-    this.maps[pressId].remove();
-    delete this.maps[pressId];
-  }
-
-  // wait DOM ready properly
-  requestAnimationFrame(() => {
-
-    const map = L.map(mapContainer).setView([pubLat, pubLon], 6);
-
-    this.maps[pressId] = map;
-
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
-
-    const publication: L.LatLngTuple = [pubLat, pubLon];
-    const press: L.LatLngTuple = [prsLat, prsLon];
-
-    // distance
-    const km = L.latLng(publication).distanceTo(L.latLng(press)) / 1000;
-    this.distance = km.toFixed(2) + ' KM';
-
-    // direction
-    this.direction = this.getCompassDirection(
-      prsLat, prsLon, pubLat, pubLon
-    );
-
-    // duration
-    const avgSpeed = 40;
-    const mins = Math.round((km / avgSpeed) * 60);
-    this.duration = mins + ' Minutes';
-
-    // markers
-    L.marker(publication)
-      .addTo(map)
-      .bindPopup('<b>Place Of Publication</b>');
-
-    L.marker(press)
-      .addTo(map)
-      .bindPopup('<b>Press Location</b>');
-
-    // route line
-   this.getRoute(pubLat, pubLon, prsLat, prsLon).subscribe({
-  next: (res: any) => {
-
-    const coords = res.routes[0].geometry.coordinates;
-
-    // convert [lon, lat] → [lat, lon]
-    const routeLatLng = coords.map((c: any) => [c[1], c[0]]);
-
-    // draw real road route
-    const routeLine = L.polyline(routeLatLng, {
-      color: 'blue',
-      weight: 5
-    }).addTo(map);
-
-    map.fitBounds(routeLine.getBounds());
-
-    // direction arrow animation
-    const decorator = (L as any).polylineDecorator(routeLine, {
-      patterns: [
-        {
-          offset: 0,
-          repeat: 50,
-          symbol: (L as any).Symbol.arrowHead({
-            pixelSize: 10,
-            polygon: false,
-            pathOptions: {
-              color: 'blue',
-              weight: 2
+ 
+    // STEP 1: Publication address geocode
+    this.pressService.getCoordinates(publicationAddress).subscribe({
+      next: (pub: any) => {
+ 
+        pubGeo = pub;
+ 
+        // STEP 2: Press address geocode
+        this.pressService.getCoordinates(pressAddress).subscribe({
+          next: (prs: any) => {
+ 
+            prsGeo = prs;
+ 
+            // FIX: Yeh check UNCOMMENT kiya gaya hai. Agar dono fail
+            // ho jayen, user ko clearly bata do - silently India
+            // center pe map mat dikhao, isse user confuse hota hai.
+            if (!pubGeo?.lat && !prsGeo?.lat) {
+              alert('Dono addresses ki location nahi mil payi. Address format check karo.');
+              return;
             }
-          })
-        }
-      ]
+ 
+            // Agar sirf ek geocode fail hua ho, dusre ko duplicate kar do
+            // taaki kam se kam ek valid point dikhe (dono ek jagah honge,
+            // par yeh better hai poore India center jaane se)
+            const finalPub = pubGeo?.lat ? pubGeo : prsGeo;
+            const finalPrs = prsGeo?.lat ? prsGeo : pubGeo;
+ 
+            if (!pubGeo?.lat) {
+              console.warn('Publication address geocode FAILED, press location use kar rahe hain fallback ke liye');
+            }
+            if (!prsGeo?.lat) {
+              console.warn('Press address geocode FAILED, publication location use kar rahe hain fallback ke liye');
+            }
+ 
+            this.drawMap(finalPub, finalPrs, pressId);
+          },
+          error: (err: any) => {
+            console.error('PRESS GEO ERROR', err);
+            alert('Press address ki location fetch karne me error aaya');
+          }
+        });
+ 
+      },
+      error: (err: any) => {
+        console.error('PUBLICATION GEO ERROR', err);
+        alert('Publication address ki location fetch karne me error aaya');
+      }
     });
-
-    decorator.addTo(map);
-
-    let offset = 0;
-
-    setInterval(() => {
-      offset = (offset + 2) % 100;
-
-      decorator.setPatterns([
-        {
-          offset: offset,
-          repeat: 40,
-          symbol: (L as any).Symbol.arrowHead({
-            pixelSize: 10,
-            polygon: false,
-            pathOptions: {
-              color: 'blue'
-            }
-          })
-        }
-      ]);
-
-    }, 120);
-
-  },
-  error: (err: any) => {
-    console.error("ROUTE ERROR", err);
   }
-});
 
-    // info control
-    const infoDiv = new L.Control({ position: 'topright' });
-
-    infoDiv.onAdd = () => {
-
-      const div = L.DomUtil.create('div', 'map-info-box');
-
-      div.innerHTML = `
-        <div style="
-          background:white;
-          padding:10px;
-          border-radius:8px;
-          box-shadow:0 2px 6px rgba(0,0,0,0.3);
-          font-size:13px;
-        ">
-          <b>Distance:</b> ${this.distance}<br>
-          <b>Direction:</b> ${this.direction}<br>
-          <b>Duration:</b> ${this.duration}
-        </div>
-      `;
-
-      return div;
-    };
-
-    infoDiv.addTo(map);
-
-    // auto fit
-    map.fitBounds([publication, press]);
-
-    // IMPORTANT FIX
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 300);
-
-    this.cd.detectChanges();
-  });
-}
+ // ===========================================
+  // DRAW MAP
+  // ===========================================
+  drawMap(pub: any, prs: any, pressId: string): void {
+ 
+    const pubLat = Number(pub.lat);
+    const pubLon = Number(pub.lon);
+    const prsLat = Number(prs.lat);
+    const prsLon = Number(prs.lon);
+ 
+    if (isNaN(pubLat) || isNaN(pubLon) || isNaN(prsLat) || isNaN(prsLon)) {
+      alert('Invalid coordinates');
+      return;
+    }
+ 
+    const mapContainer = document.getElementById('map-' + pressId);
+ 
+    if (!mapContainer) {
+      console.error('Map container NOT FOUND for:', pressId);
+      return;
+    }
+ 
+    // Purana map hatao agar already bana hua hai
+    if (this.maps[pressId]) {
+      this.maps[pressId].remove();
+      delete this.maps[pressId];
+    }
+ 
+    // FIX: purana animation interval bhi clear karo, warna purane
+    // intervals zinda rehte hain aur naye ke saath overlap karte hain
+    if (this.animationIntervals[pressId]) {
+      clearInterval(this.animationIntervals[pressId]);
+      delete this.animationIntervals[pressId];
+    }
+ 
+    requestAnimationFrame(() => {
+ 
+      const map = L.map(mapContainer).setView([pubLat, pubLon], 6);
+ 
+      this.maps[pressId] = map;
+ 
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19
+      }).addTo(map);
+ 
+      const publication: L.LatLngTuple = [pubLat, pubLon];
+      const press: L.LatLngTuple = [prsLat, prsLon];
+ 
+      // Distance (straight-line)
+      const km = L.latLng(publication).distanceTo(L.latLng(press)) / 1000;
+      this.distance = km.toFixed(2) + ' KM';
+ 
+      // Direction
+      this.direction = this.getCompassDirection(prsLat, prsLon, pubLat, pubLon);
+ 
+      // Duration (estimate, average speed 40 km/h)
+      const avgSpeed = 40;
+      const mins = Math.round((km / avgSpeed) * 60);
+      this.duration = mins + ' Minutes';
+ 
+      // Markers
+      L.marker(publication).addTo(map).bindPopup('<b>Place Of Publication</b>');
+      L.marker(press).addTo(map).bindPopup('<b>Press Location</b>');
+ 
+      // FIX: getRoute() ab COMPONENT ka method hai (4 numbers leta hai),
+      // service ka clashing getRoute(url) hata diya gaya hai
+      this.getRoute(pubLat, pubLon, prsLat, prsLon).subscribe({
+        next: (res: any) => {
+          console.log('OSRM RESPONSE =>', res);
+ 
+          // FIX: agar OSRM ne valid route nahi diya, crash hone se bachao
+          if (!res?.routes?.length) {
+            console.warn('OSRM se route nahi mila, sirf markers dikhayenge');
+            map.fitBounds([publication, press]);
+            return;
+          }
+ 
+          const coords = res.routes[0].geometry.coordinates;
+          const routeLatLng = coords.map((c: any) => [c[1], c[0]]);
+ 
+          const routeLine = L.polyline(routeLatLng, {
+            color: 'blue',
+            weight: 5
+          }).addTo(map);
+ 
+          map.fitBounds(routeLine.getBounds());
+ 
+          // Direction arrow animation
+          try {
+            const decorator = (L as any).polylineDecorator(routeLine, {
+              patterns: [
+                {
+                  offset: 0,
+                  repeat: 50,
+                  symbol: (L as any).Symbol.arrowHead({
+                    pixelSize: 10,
+                    polygon: false,
+                    pathOptions: { color: 'blue', weight: 2 }
+                  })
+                }
+              ]
+            });
+ 
+            decorator.addTo(map);
+ 
+            let offset = 0;
+ 
+            // FIX: interval ID store kiya gaya hai taaki future me clear kar sakein
+            this.animationIntervals[pressId] = setInterval(() => {
+              offset = (offset + 2) % 100;
+ 
+              decorator.setPatterns([
+                {
+                  offset: offset,
+                  repeat: 40,
+                  symbol: (L as any).Symbol.arrowHead({
+                    pixelSize: 10,
+                    polygon: false,
+                    pathOptions: { color: 'blue' }
+                  })
+                }
+              ]);
+            }, 120);
+ 
+          } catch (decoratorErr) {
+            // FIX: agar polylineDecorator kisi wajah se fail ho (plugin
+            // load issue), route line phir bhi dikhegi, sirf animated
+            // arrows nahi milenge - poora map crash nahi hoga
+            console.error('Polyline decorator error (arrows nahi dikhenge, par route line dikhegi):', decoratorErr);
+          }
+        },
+        error: (err: any) => {
+          // FIX: route fail hone par bhi markers + distance/direction
+          // already set ho chuke hain upar, sirf route line miss hogi
+          console.error('ROUTE ERROR (OSRM)', err);
+          map.fitBounds([publication, press]);
+        }
+      });
+ 
+      // Info control box
+      const infoDiv = new L.Control({ position: 'topright' });
+ 
+      infoDiv.onAdd = () => {
+        const div = L.DomUtil.create('div', 'map-info-box');
+        div.innerHTML = `
+          <div style="
+            background:white;
+            padding:10px;
+            border-radius:8px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.3);
+            font-size:13px;
+          ">
+            <b>Distance:</b> ${this.distance}<br>
+            <b>Direction:</b> ${this.direction}<br>
+            <b>Duration:</b> ${this.duration}
+          </div>
+        `;
+        return div;
+      };
+ 
+      infoDiv.addTo(map);
+ 
+      map.fitBounds([publication, press]);
+ 
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 300);
+ 
+      this.cd.detectChanges();
+    });
+  }
 }
 
 
