@@ -37,6 +37,23 @@ type SearchTab = 'search' | 'advanced' | 'insert' | 'Press';
 })
 export class SearchDashboardComponent implements OnInit {
 
+  evisionHistory = [
+    {
+      existingRecord: 'Publisher: ABC Publications',
+      revisedRecord: 'Publisher: XYZ Publications',
+      revisionDate: '15-Jun-2026'
+    },
+    {
+      existingRecord: 'Periodicity: Weekly',
+      revisedRecord: 'Periodicity: Daily',
+      revisionDate: '15-Jun-2026'
+    },
+    {
+      existingRecord: 'Publication Place: Delhi',
+      revisedRecord: 'Publication Place: Noida',
+      revisionDate: '20-Jun-2026'
+    }
+  ];
   // =========================================================
   // STATE
   // =========================================================
@@ -51,15 +68,16 @@ export class SearchDashboardComponent implements OnInit {
 
 
   results: MandatoryFiling[] = [];
+  data: any[] = [];
   selectedFiling: MandatoryFiling | null = null;
   // String ki jagah Set use karo
-activeDetailPanel: Set<string> = new Set();
+  activeDetailPanel: Set<string> = new Set();
   moreDetailsFiling: MandatoryFiling | null = null;
   showDakDetails = false;
   showRevisionDetails = false;
   revisionSuccess = '';
-revisionError = '';
-revisionSubmitting = false;
+  revisionError = '';
+  revisionSubmitting = false;
   pdfSourceUrl: string | null = null;
 
   loading = false;
@@ -68,13 +86,15 @@ revisionSubmitting = false;
   successMsg = '';
   currentUser = '';
 
+
+
   // Periodicity//
-  periodicities: any[] =[];
+  periodicities: any[] = [];
   states: string[] = [];
   districts: string[] = [];
 
   // languages//
-  languages: any[] =[];
+  languages: any[] = [];
 
   // Printing Press
   pressList: any[] = [];
@@ -83,6 +103,9 @@ revisionSubmitting = false;
   showPressView = false;
   isPressEdit = false;
   editingPressId: number | null = null;
+  //=================================
+  //Court Case Details
+  //=================================
 
   // Other options toggle in Insert form
   showOtherOptions = false;
@@ -94,6 +117,7 @@ revisionSubmitting = false;
   document1: File | null = null;
   document2: File | null = null;
   otherDocuments: File[] = [];
+  caseDocument: File | null = null;
 
   @ViewChild('doc1Input', { static: false })
   doc1Input?: ElementRef<HTMLInputElement>;
@@ -147,28 +171,66 @@ revisionSubmitting = false;
     });
 
     // INSERT FORM
-this.insertForm = this.fb.group({
-  diaryNumber:     ['', [Validators.required]],
-  regNo:           [''],
-  titleName:       ['', [Validators.required, Validators.minLength(3)]],
-  periodicity:     [''],
-  language:        [''],
-  state:           [''],
-  district:        [''],
-  pinCode:         ['', [Validators.pattern('^[0-9]{6}$')]],
-  status:          ['ACTIVE'],
-  ownerName:       [''],
-  publisherName:   [''],
-  searchType:      [''],
-  otherValue:      [''],
-  dakReceivedDate: [''],
-  dakDiaryNo:      [''],
-  dakState:        [''],
-  dakDistrict:     [''],
-  dakSection:      [''],
-  dakProcessed:    [''],
-  dakForwardTo:    ['']
-});
+    this.insertForm = this.fb.group({
+      diaryNumber: [''],
+      regNo: [''],
+      titleName: [''],
+      periodicity: [''],
+      language: [''],
+      state: [''],
+      district: [''],
+      pinCode: ['', [Validators.pattern('^[0-9]{6}$')]],
+      status: ['ACTIVE'],
+      ownerName: [''],
+      publisherName: [''],
+      searchType: [''],
+      otherValue: [''],
+      dakReceivedDate: [''],
+      dakDiaryNo: [''],
+      dakState: [''],
+      dakDistrict: [''],
+      dakSection: [''],
+      dakProcessed: [''],
+      dakForwardTo: [''],
+      courtName: [''],
+      caseDescription: [''],
+      caseNo: [''],
+      subject: [''],
+      sectionName: [''],
+      ownerAddress: [''],
+      ownerState: [''],
+      ownerDistrict: [''],
+      ownerCity: [''],
+      ownerPincode: [''],
+
+      publisherAddress: [''],
+      publisherState: [''],
+      publisherDistrict: [''],
+      publisherCity: [''],
+      publisherPincode: [''],
+
+      editorName: [''],
+      editorAddress: [''],
+      editorState: [''],
+      editorDistrict: [''],
+      editorCity: [''],
+      editorPincode: [''],
+
+      publicationAddress: [''],
+      publicationState: [''],
+      publicationDistrict: [''],
+      publicationCity: [''],
+      publicationPincode: [''],
+
+      printerName: [''],
+      pressName: [''],
+      pressAddress: [''],
+      pressState: [''],
+      pressDistrict: [''],
+      pressCity: [''],
+      pressPincode: ['']
+
+    });
 
     // PRESS FORM
     this.pressForm = this.fb.group({
@@ -181,30 +243,30 @@ this.insertForm = this.fb.group({
       district: ['', Validators.required],
       pincode: ['', [Validators.required, Validators.pattern('^[0-9]{6}$')]]
     });
-this.revisionForm = this.fb.group({
-  titleName: [''],
-  regNo: [''],
-  reason: [''],
-  changes: [''],
-  revisionDate: ['']
-});
+    this.revisionForm = this.fb.group({
+      titleName: [''],
+      regNo: [''],
+      reason: [''],
+      changes: [''],
+      revisionDate: ['']
+    });
     this.loadStates();
     //this.loadPress();
     this.loadPeriodicities();
     this.loadLanguages();
 
-    
+
   }
-openPrintingPress(): void {
-  this.activeTab = 'Press';
-  this.results = [];
-  this.selectedFiling = null;
-  this.moreDetailsFiling = null;
-  this.pdfSourceUrl = null;
-  this.errorMsg = '';
-  this.searched = false;
-  this.showDakDetails = false;
-}
+  openPrintingPress(): void {
+    this.activeTab = 'Press';
+    this.results = [];
+    this.selectedFiling = null;
+    this.moreDetailsFiling = null;
+    this.pdfSourceUrl = null;
+    this.errorMsg = '';
+    this.searched = false;
+    this.showDakDetails = false;
+  }
 
   // =========================================================
   // TAB
@@ -227,64 +289,66 @@ openPrintingPress(): void {
   // SEARCH
   // =========================================================
 
-// Periodicity Record//
-loadPeriodicities(): void {
+  // Periodicity Record//
+  loadPeriodicities(): void {
 
-  this.filingService.getPeriodicities()
-    .subscribe({
+    this.filingService.getPeriodicities()
+      .subscribe({
 
-      next: (data) => {
+        next: (data) => {
 
-        console.log('PERIODICITIES =>', data);
+          console.log('PERIODICITIES =>', data);
 
-        this.periodicities = data;
+          this.periodicities = data;
 
-      },
+        },
 
-      error: (err) => {
+        error: (err) => {
 
-        console.error('Periodicity Error', err);
+          console.error('Periodicity Error', err);
 
-      }
+        }
 
-    });
+      });
 
-}
+  }
 
-// lOAD lANGUAGES//
-loadLanguages() {
+  // lOAD lANGUAGES//
+  loadLanguages() {
 
-  this.filingService.getLanguages()
-    .subscribe({
+    this.filingService.getLanguages()
+      .subscribe({
 
-      next: (data) => {
+        next: (data) => {
 
-        console.log('LANGUAGES =>', data);
+          console.log('LANGUAGES =>', data);
 
-        this.languages = data;
+          this.languages = data;
 
-      },
+        },
 
-      error: (err) => {
+        error: (err) => {
 
-        console.error(err);
+          console.error(err);
 
-      }
+        }
 
-    });
+      });
 
-}
+  }
 
   searchRecords(): void {
 
-  const keyword = this.searchInput.trim();
+    this.startLoading();
 
-  this.filingService.searchByDiaryNumber(keyword)
-    .subscribe({
-      next: (res) => this.handleSearchResponse(res),
-      error: (err) => this.handleError()
-    });
-}
+    const keyword = this.searchInput.trim();
+
+    this.filingService.searchByDiaryNumber(keyword)
+      .subscribe({
+        next: (res) => this.handleSearchResponse(res),
+        error: (err) => this.handleError()
+      });
+  }
   searchAdvanced(): void {
     const req: SearchRequest = this.advancedForm.value;
     this.startLoading();
@@ -342,19 +406,19 @@ loadLanguages() {
   // FILING SELECTION & DETAIL
   // =========================================================
 
-selectFiling(filing: MandatoryFiling): void {
-  if (this.selectedFiling?.id === filing.id) {
-    this.selectedFiling = null;
-    this.moreDetailsFiling = null;
-    this.showDakDetails = false;
-    this.activeDetailPanel = new Set();
-  } else {
-    this.selectedFiling = filing;
-    this.moreDetailsFiling = null;
-    this.showDakDetails = false;
-    this.activeDetailPanel = new Set();
+  selectFiling(filing: MandatoryFiling): void {
+    if (this.selectedFiling?.id === filing.id) {
+      this.selectedFiling = null;
+      this.moreDetailsFiling = null;
+      this.showDakDetails = false;
+      this.activeDetailPanel = new Set();
+    } else {
+      this.selectedFiling = filing;
+      this.moreDetailsFiling = null;
+      this.showDakDetails = false;
+      this.activeDetailPanel = new Set();
+    }
   }
-}
 
   closeDetail(): void {
     this.selectedFiling = null;
@@ -362,10 +426,10 @@ selectFiling(filing: MandatoryFiling): void {
     this.pdfSourceUrl = null;
     this.activeDetailPanel = new Set();
   }
-closeDetailPanel(): void {
-  this.selectedFiling = null;
-  this.activeDetailPanel = new Set();
-}
+  closeDetailPanel(): void {
+    this.selectedFiling = null;
+    this.activeDetailPanel = new Set();
+  }
 
   openMoreDetails(filing: MandatoryFiling): void {
     this.moreDetailsFiling = filing;
@@ -374,56 +438,56 @@ closeDetailPanel(): void {
   closeMoreDetails(): void {
     this.moreDetailsFiling = null;
     this.showDakDetails = false;
-      this.showRevisionDetails = false;
-  this.revisionForm?.reset();
+    this.showRevisionDetails = false;
+    this.revisionForm?.reset();
   }
   toggleDakDetails(): void {
-  this.showDakDetails = !this.showDakDetails;
-}
-toggleRevisionDetails(): void {
-  this.showRevisionDetails = !this.showRevisionDetails;
-  this.revisionSuccess = '';
-  this.revisionError = '';
-}
+    this.showDakDetails = !this.showDakDetails;
+  }
+  toggleRevisionDetails(): void {
+    this.showRevisionDetails = !this.showRevisionDetails;
+    this.revisionSuccess = '';
+    this.revisionError = '';
+  }
 
-submitRevision(): void {
-  if (!this.moreDetailsFiling) return;
+  submitRevision(): void {
+    if (!this.moreDetailsFiling) return;
 
-  this.revisionSubmitting = true;
-  this.revisionSuccess = '';
-  this.revisionError = '';
+    this.revisionSubmitting = true;
+    this.revisionSuccess = '';
+    this.revisionError = '';
 
-  const req = {
-    filingId: this.moreDetailsFiling.id,
-    titleName: this.revisionForm.value.titleName || '',
-    regNo: this.revisionForm.value.regNo || '',
-    reason: this.revisionForm.value.reason || '',
-    changes: this.revisionForm.value.changes || '',
-    revisionDate: this.revisionForm.value.revisionDate || ''
-  };
+    const req = {
+      filingId: this.moreDetailsFiling.id,
+      titleName: this.revisionForm.value.titleName || '',
+      regNo: this.revisionForm.value.regNo || '',
+      reason: this.revisionForm.value.reason || '',
+      changes: this.revisionForm.value.changes || '',
+      revisionDate: this.revisionForm.value.revisionDate || ''
+    };
 
-  this.filingService.addRevision(req).subscribe({
-    next: (res: any) => {
-      this.revisionSubmitting = false;
-      this.revisionSuccess = 'Revision added successfully!';
-      this.revisionForm.reset();
-      if (this.moreDetailsFiling) {
-        if (!this.moreDetailsFiling.revisions) {
-          this.moreDetailsFiling.revisions = [];
+    this.filingService.addRevision(req).subscribe({
+      next: (res: any) => {
+        this.revisionSubmitting = false;
+        this.revisionSuccess = 'Revision added successfully!';
+        this.revisionForm.reset();
+        if (this.moreDetailsFiling) {
+          if (!this.moreDetailsFiling.revisions) {
+            this.moreDetailsFiling.revisions = [];
+          }
+          this.moreDetailsFiling.revisions.unshift(res.data);
+          this.moreDetailsFiling.revisionCount =
+            (this.moreDetailsFiling.revisionCount || 0) + 1;
         }
-        this.moreDetailsFiling.revisions.unshift(res.data);
-        this.moreDetailsFiling.revisionCount =
-          (this.moreDetailsFiling.revisionCount || 0) + 1;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        this.revisionSubmitting = false;
+        this.revisionError = 'Failed to add revision. Please try again.';
+        console.error(err);
       }
-      this.cdr.detectChanges();
-    },
-    error: (err: any) => {
-      this.revisionSubmitting = false;
-      this.revisionError = 'Failed to add revision. Please try again.';
-      console.error(err);
-    }
-  });
-}
+    });
+  }
 
 
   // =========================================================
@@ -525,38 +589,38 @@ submitRevision(): void {
 
   getStatusClass(status: string): string {
     switch ((status || '').toUpperCase()) {
-      case 'ACTIVE':   return 'status-active';
+      case 'ACTIVE': return 'status-active';
       case 'INACTIVE': return 'status-inactive';
-      case 'PENDING':  return 'status-pending';
-      default:         return '';
+      case 'PENDING': return 'status-pending';
+      default: return '';
     }
   }
   getPeriodicityClass(periodicity: string): string {
 
-  switch ((periodicity || '').toUpperCase()) {
+    switch ((periodicity || '').toUpperCase()) {
 
-    case 'DAILY':
-      return 'badge-daily';
+      case 'DAILY':
+        return 'badge-daily';
 
-    case 'WEEKLY':
-      return 'badge-weekly';
+      case 'WEEKLY':
+        return 'badge-weekly';
 
-    case 'MONTHLY':
-      return 'badge-monthly';
+      case 'MONTHLY':
+        return 'badge-monthly';
 
-    case 'FORTNIGHTLY':
-      return 'badge-fortnightly';
+      case 'FORTNIGHTLY':
+        return 'badge-fortnightly';
 
-    case 'QUARTERLY':
-      return 'badge-quarterly';
+      case 'QUARTERLY':
+        return 'badge-quarterly';
 
-    case 'YEARLY':
-      return 'badge-yearly';
+      case 'YEARLY':
+        return 'badge-yearly';
 
-    default:
-      return '';
+      default:
+        return '';
+    }
   }
-}
 
   formatDate(dateStr?: string): string {
     if (!dateStr) return '—';
@@ -603,7 +667,7 @@ submitRevision(): void {
 
   downloadCSV(): void {
     if (!this.results.length) { alert('No data available to download.'); return; }
-    const headers = ['Diary Number','Registration Number','Title Name','Owner Name','Publisher Name','State','District','Periodicity','Status','Filing Date'];
+    const headers = ['Diary Number', 'Registration Number', 'Title Name', 'Owner Name', 'Publisher Name', 'State', 'District', 'Periodicity', 'Status', 'Filing Date'];
     const rows = this.results.map(item => [
       item.diaryNumber ?? '', item.regNo ?? '', item.titleName ?? '',
       item.ownerName ?? '', item.publisherName ?? '', item.state ?? '',
@@ -652,13 +716,37 @@ submitRevision(): void {
     this.document2 = file;
     this.cdr.detectChanges();
   }
+  // court case details
+
+  onCaseDocumentSelected(event: any): void {
+
+    const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (file.type !== 'application/pdf') {
+      alert('Only PDF files are allowed');
+      event.target.value = '';
+      return;
+    }
+
+    this.caseDocument = file;
+
+    this.cdr.detectChanges();
+  }
+  removeCaseDocument(): void {
+
+    this.caseDocument = null;
+
+  }
 
   canAddAnotherDocument(): boolean {
     if (!this.document1 || !this.document2) return false;
     if (this.otherDocuments.length === 0) return true;
     return !!this.otherDocuments[this.otherDocuments.length - 1];
   }
-
   isAddButtonDisabled(): boolean {
     if (!this.document1 || !this.document2) return true;
     if (this.otherDocuments.length === 0) return false;
@@ -697,20 +785,24 @@ submitRevision(): void {
   // INSERT FORM SUBMIT
   // =========================================================
 
-    submitInsertForm(): void {
-  if (this.insertForm.invalid) {
-    this.insertForm.markAllAsTouched();
-    this.cdr.detectChanges();
-    return;
-  }
+  submitInsertForm(): void {
+    if (this.insertForm.invalid) {
+      this.insertForm.markAllAsTouched();
+      this.cdr.detectChanges();
+      return;
+    }
     this.loading = true;
-    const formData = new FormData();
+    let formData = new FormData();
+
     formData.append('createdBy', localStorage.getItem('username') || '');
     Object.keys(this.insertForm.value).forEach(key => {
       formData.append(key, this.insertForm.value[key] ?? '');
     });
     if (this.document1) formData.append('document1', this.document1);
     if (this.document2) formData.append('document2', this.document2);
+    if (this.caseDocument) {
+      formData.append('caseDocument', this.caseDocument);
+    }
     this.otherDocuments.forEach(file => { if (file) formData.append('otherDocuments', file); });
 
     this.filingService.insertFiling(formData).subscribe({
@@ -740,6 +832,7 @@ submitRevision(): void {
     this.document1 = null;
     this.document2 = null;
     this.otherDocuments = [];
+    this.caseDocument = null;
     this.insertForm.patchValue({ status: 'ACTIVE' });
     document.querySelectorAll('input[type="file"]').forEach((input: any) => input.value = '');
   }
@@ -766,6 +859,21 @@ submitRevision(): void {
     }
   }
 
+
+  // =========================================================
+  //ownership & Publisher Details
+  // =========================================================
+
+  togglePanel(panel: string) {
+    if (this.activeDetailPanel.has(panel)) {
+      this.activeDetailPanel.delete(panel);
+    } else {
+      this.activeDetailPanel.add(panel);
+    }
+  }
+  openTransferPanel(): void {
+    this.activeDetailPanel.add('transfer');
+  }
   // =========================================================
   // SESSION & LOGOUT
   // =========================================================
@@ -786,4 +894,5 @@ submitRevision(): void {
     sessionStorage.clear();
     this.router.navigate(['/login']);
   }
+
 }

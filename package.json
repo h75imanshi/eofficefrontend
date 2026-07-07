@@ -24,6 +24,7 @@
     "express": "^5.1.0",
     "leaflet": "^1.9.4",
     "leaflet-polylinedecorator": "^1.6.0",
+    "leaflet.markercluster": "^1.5.3",
     "ng2-pdf-viewer": "^10.4.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"

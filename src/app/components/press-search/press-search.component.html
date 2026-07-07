@@ -417,7 +417,7 @@
                         Show Route
                       </button>
 
-                      <div [id]="'map-' + p.id" style="height:500px;width:100%;margin-top:15px;border:1px solid #ccc;">
+                      <div [id]="'map-' + p.id" style="height:500px;">
                       </div>
                       <!-- <div class="distance-info" *ngIf="distance">
 
@@ -438,6 +438,27 @@
                           <b>Estimated Duration:</b>
                           {{ duration }}
                         </p> -->
+
+                      <div class="route-info" *ngIf="distance">
+
+                        <div>
+                          <strong>Distance:</strong>
+                          {{ distance }}
+                        </div>
+
+                        <div>
+                          <strong>Direction:</strong>
+                          {{ direction }}
+                        </div>
+
+                        <div>
+                          <strong>Duration:</strong>
+                          {{ duration }}
+                        </div>
+
+                      </div>
+                      <div [id]="'map-' + p.id" class="map-container">
+                      </div>
 
                     </div>
 

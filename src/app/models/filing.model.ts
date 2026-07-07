@@ -111,10 +111,38 @@ filing_date: string|undefined;
   dakForwardTo?: string;
 
   // ==========================
+  // OWNERSHIP TRANSFER
+  // ==========================
+
+  transferInfo?: {
+    transferDate?: string;
+    approvedDate?: string;
+    status?: string;
+  };
+
+  oldOwner?: {
+    name?: string;
+    type?: string;
+    contact?: string;
+    email?: string;
+    address?: string;
+  };
+
+  newOwner?: {
+    name?: string;
+    type?: string;
+    contact?: string;
+    email?: string;
+    address?: string;
+    gstNumber?: string;
+  };
+
+  // ==========================
   // REVISION
   // ==========================
   revisions?: RevisionResponse[];
   revisionCount?: number;
+  
 }
 
 export type Periodicity =

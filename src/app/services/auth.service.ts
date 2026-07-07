@@ -30,7 +30,6 @@ export class AuthService {
 
   // Spring Boot backend URL
   private apiUrl = 'http://localhost:8181/api/auth';
-
   constructor(private http: HttpClient) {}
 
   // Signup — data database mein jayega (BCrypt encrypted password)
