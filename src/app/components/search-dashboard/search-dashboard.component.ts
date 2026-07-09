@@ -179,7 +179,7 @@ export class SearchDashboardComponent implements OnInit {
       language: [''],
       state: [''],
       district: [''],
-      pinCode: ['', [Validators.pattern('^[0-9]{6}$')]],
+      pinCode: ['', [Validators.pattern(/^[0-9]{6}$/)]],
       status: ['ACTIVE'],
       ownerName: [''],
       publisherName: [''],
@@ -197,6 +197,8 @@ export class SearchDashboardComponent implements OnInit {
       caseNo: [''],
       subject: [''],
       sectionName: [''],
+      otherType: [''],
+      specifyDetails: [''],
       ownerAddress: [''],
       ownerState: [''],
       ownerDistrict: [''],
@@ -337,16 +339,32 @@ export class SearchDashboardComponent implements OnInit {
 
   }
 
-  searchRecords(): void {
+  // searchRecords(): void {
 
+  //   this.startLoading();
+
+  //   const keyword = this.searchInput.trim();
+
+  //   this.filingService.searchByDiaryNumber(keyword)
+  //     .subscribe({
+  //       next: (res) => this.handleSearchResponse(res),
+  //       error: (err) => this.handleError()
+  //     });
+  // }
+  searchRecords(): void {
     this.startLoading();
 
     const keyword = this.searchInput.trim();
 
-    this.filingService.searchByDiaryNumber(keyword)
+    if (!keyword) {
+      this.errorMsg = 'Please enter search text';
+      return;
+    }
+
+    this.filingService.universalSearch(keyword)
       .subscribe({
         next: (res) => this.handleSearchResponse(res),
-        error: (err) => this.handleError()
+        error: () => this.handleError()
       });
   }
   searchAdvanced(): void {
@@ -542,7 +560,7 @@ export class SearchDashboardComponent implements OnInit {
   // =========================================================
 
   // savePress(): void {
-  //   this.http.post('http://localhost:8181/api/printing-press/add', this.pressForm.value)
+  //   this.http.post('http://10.197.4.2:8181/api/printing-press/add', this.pressForm.value)
   //     .subscribe({
   //       next: () => { alert('Press Saved'); this.pressForm.reset(); this.loadPress(); },
   //       error: (err) => alert(err.error)
@@ -550,22 +568,22 @@ export class SearchDashboardComponent implements OnInit {
   // }
 
   // loadPress(): void {
-  //   this.http.get<any[]>('http://localhost:8181/api/printing-press/search')
+  //   this.http.get<any[]>('http://10.197.4.2:8181/api/printing-press/search')
   //     .subscribe(res => this.pressList = res);
   // }
 
   // viewPress(id: number): void {
-  //   this.http.get(`http://localhost:8181/api/printing-press/${id}`)
+  //   this.http.get(`http://10.197.4.2:8181/api/printing-press/${id}`)
   //     .subscribe((res: any) => { this.selectedPress = res; this.showPressView = true; });
   // }
 
   // editPress(id: number): void {
-  //   this.http.get(`http://localhost:8181/api/printing-press/${id}`)
+  //   this.http.get(`http://10.197.4.2:8181/api/printing-press/${id}`)
   //     .subscribe((res: any) => { this.isPressEdit = true; this.editingPressId = id; this.pressForm.patchValue(res); });
   // }
 
   // updatePress(): void {
-  //   this.http.put(`http://localhost:8181/api/printing-press/update/${this.editingPressId}`, this.pressForm.value)
+  //   this.http.put(`http://10.197.4.2:8181/api/printing-press/update/${this.editingPressId}`, this.pressForm.value)
   //     .subscribe({
   //       next: () => {
   //         alert('Updated Successfully');
@@ -786,6 +804,13 @@ export class SearchDashboardComponent implements OnInit {
   // =========================================================
 
   submitInsertForm(): void {
+
+    console.log(
+      'specifyDetails =',
+      this.insertForm.get('specifyDetails')?.value
+    );
+
+  
     if (this.insertForm.invalid) {
       this.insertForm.markAllAsTouched();
       this.cdr.detectChanges();
@@ -795,9 +820,34 @@ export class SearchDashboardComponent implements OnInit {
     let formData = new FormData();
 
     formData.append('createdBy', localStorage.getItem('username') || '');
+    // formData.append(
+    //   'otherType',
+    //   this.insertForm.get('otherValue')?.value || ''
+    // );
+
     Object.keys(this.insertForm.value).forEach(key => {
-      formData.append(key, this.insertForm.value[key] ?? '');
+
+      if (
+        key !== 'otherValue' &&
+        key !== 'specifyDetails'
+      ) {
+
+        formData.append(
+          key,
+          this.insertForm.value[key] ?? ''
+        );
+      }
     });
+
+    formData.append(
+      'otherType',
+      this.insertForm.get('specifyDetails')?.value || ''
+    );
+
+    formData.append(
+      'specifyDetails',
+      this.insertForm.get('otherValue')?.value || ''
+    );
     if (this.document1) formData.append('document1', this.document1);
     if (this.document2) formData.append('document2', this.document2);
     if (this.caseDocument) {
@@ -837,6 +887,51 @@ export class SearchDashboardComponent implements OnInit {
     document.querySelectorAll('input[type="file"]').forEach((input: any) => input.value = '');
   }
 
+  //save//
+  save() {
+
+    const formData = new FormData();
+
+    formData.append(
+      'specifyDetails',
+      (this.insertForm.get('specifyDetails')?.value || '')
+        .replace(/^,/, '')
+    );
+    formData.append(
+      'otherType',
+      (this.insertForm.get('otherValue')?.value || '')
+        .replace(/^,/, '')
+    );
+    formData.append(
+      'diaryNumber',
+      this.insertForm.get('diaryNumber')?.value || ''
+    );
+
+    formData.append(
+      'regNo',
+      this.insertForm.get('regNo')?.value || ''
+    );
+
+    formData.append(
+      'titleName',
+      this.insertForm.get('titleName')?.value || ''
+    );
+
+    // baki fields bhi append karo...
+
+    this.http.post(
+      'http://10.197.4.2:8181/api/mandatory-filings/insert',
+      formData
+    ).subscribe({
+      next: (res) => {
+        console.log('Saved Successfully', res);
+      },
+      error: (err) => {
+        console.error('Save Error', err);
+      }
+    });
+  }
+
   // =========================================================
   // STATES & DISTRICTS
   // =========================================================
@@ -858,6 +953,14 @@ export class SearchDashboardComponent implements OnInit {
       });
     }
   }
+
+  allowOnlyNumbers(event: KeyboardEvent) {
+  const charCode = event.which ? event.which : event.keyCode;
+
+  if (charCode < 48 || charCode > 57) {
+    event.preventDefault();
+  }
+}
 
 
   // =========================================================

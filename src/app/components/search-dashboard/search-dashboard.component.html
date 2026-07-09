@@ -213,9 +213,9 @@
                 <label>Subject</label>
                 <input type="text" class="form-control subject-input" formControlName="subject" placeholder="Subject" />
               </div>
-            <div class="form-group">
-              <label>Section</label>
-              <select class="form-control" formControlName="sectionName">
+              <div class="form-group">
+                <label>Section</label>
+                <select class="form-control" formControlName="sectionName">
                   <option value="">-- Select Section --</option>
                   <option value="R1">R1</option>
                   <option value="R2">R2</option>
@@ -225,8 +225,8 @@
                   <option value="Admin">Admin</option>
                   <option value="Title_section">Title Section</option>
                 </select>
-            
-            </div>
+
+              </div>
 
               <div class="form-group">
                 <label>Other</label>
@@ -236,15 +236,34 @@
 
             <div *ngIf="showOtherOptions" class="other-section">
               <div class="radio-group">
-                <label><input type="radio" formControlName="searchType" value="REG_NO" /> Reg No</label>
-                <label><input type="radio" formControlName="searchType" value="TITLE_NAME" /> Title Name</label>
-                <label><input type="radio" formControlName="searchType" value="DIARY_NO" /> Diary No</label>
-                <label><input type="radio" formControlName="searchType" value="COMPUTER_NO" /> Computer No</label>
-                <label><input type="radio" formControlName="searchType" value="OTHER" /> Other</label>
+                <label>
+                  <input type="radio" formControlName="specifyDetails" value="REG_NO">
+                  Reg No
+                </label>
+
+                <label>
+                  <input type="radio" formControlName="specifyDetails" value="TITLE_NAME">
+                  Title Name
+                </label>
+
+                <label>
+                  <input type="radio" formControlName="specifyDetails" value="DIARY_NO">
+                  Diary No
+                </label>
+
+                <label>
+                  <input type="radio" formControlName="specifyDetails" value="COMPUTER_NO">
+                  Computer No
+                </label>
+
+                <label>
+                  <input type="radio" formControlName="specifyDetails" value="OTHER">
+                  Other
+                </label>
               </div>
-              <input type="text" formControlName="otherValue" class="form-control" placeholder="Specify Details" />
+              <input type="text" formControlName="otherValue" class="form-control" placeholder="Specify Details">
             </div>
-          
+
           </div>
 
           <div class="form-section">
@@ -292,7 +311,8 @@
                 <label>Periodicity</label>
                 <select class="form-control" formControlName="periodicity">
                   <option value="">Select Periodicity</option>
-                  <option *ngFor="let p of periodicities" [value]="p.periodicityPeriod">{{ p.periodicityPeriod }}</option>
+                  <option *ngFor="let p of periodicities" [value]="p.periodicityPeriod">{{ p.periodicityPeriod }}
+                  </option>
                 </select>
               </div>
               <div class="form-group">
