@@ -560,7 +560,7 @@ export class SearchDashboardComponent implements OnInit {
   // =========================================================
 
   // savePress(): void {
-  //   this.http.post('http://10.197.4.2:8181/api/printing-press/add', this.pressForm.value)
+  //   this.http.post('http://localhost:8181/api/printing-press/add', this.pressForm.value)
   //     .subscribe({
   //       next: () => { alert('Press Saved'); this.pressForm.reset(); this.loadPress(); },
   //       error: (err) => alert(err.error)
@@ -568,22 +568,22 @@ export class SearchDashboardComponent implements OnInit {
   // }
 
   // loadPress(): void {
-  //   this.http.get<any[]>('http://10.197.4.2:8181/api/printing-press/search')
+  //   this.http.get<any[]>('http://localhost:8181/api/printing-press/search')
   //     .subscribe(res => this.pressList = res);
   // }
 
   // viewPress(id: number): void {
-  //   this.http.get(`http://10.197.4.2:8181/api/printing-press/${id}`)
+  //   this.http.get(`http://localhost:8181/api/printing-press/${id}`)
   //     .subscribe((res: any) => { this.selectedPress = res; this.showPressView = true; });
   // }
 
   // editPress(id: number): void {
-  //   this.http.get(`http://10.197.4.2:8181/api/printing-press/${id}`)
+  //   this.http.get(`http://localhost:8181/api/printing-press/${id}`)
   //     .subscribe((res: any) => { this.isPressEdit = true; this.editingPressId = id; this.pressForm.patchValue(res); });
   // }
 
   // updatePress(): void {
-  //   this.http.put(`http://10.197.4.2:8181/api/printing-press/update/${this.editingPressId}`, this.pressForm.value)
+  //   this.http.put(`http://localhost:8181/api/printing-press/update/${this.editingPressId}`, this.pressForm.value)
   //     .subscribe({
   //       next: () => {
   //         alert('Updated Successfully');
@@ -920,7 +920,7 @@ export class SearchDashboardComponent implements OnInit {
     // baki fields bhi append karo...
 
     this.http.post(
-      'http://10.197.4.2:8181/api/mandatory-filings/insert',
+      'http://localhost:8181/api/mandatory-filings/insert',
       formData
     ).subscribe({
       next: (res) => {

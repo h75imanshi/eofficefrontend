@@ -58,7 +58,7 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
       throw error;
     }
 
-    console.log(`Node Express server listening on http://10.197.4.2:${8181}`);
+    console.log(`Node Express server listening on http://localhost:${8181}`);
   });
 }
 
