@@ -810,7 +810,7 @@ export class SearchDashboardComponent implements OnInit {
       this.insertForm.get('specifyDetails')?.value
     );
 
-  
+
     if (this.insertForm.invalid) {
       this.insertForm.markAllAsTouched();
       this.cdr.detectChanges();
@@ -820,6 +820,13 @@ export class SearchDashboardComponent implements OnInit {
     let formData = new FormData();
 
     formData.append('createdBy', localStorage.getItem('username') || '');
+    // formData.append('dakReceivedDate', this.insertForm.get('dakReceivedDate')?.value || '');
+    // formData.append('dakDiaryNo', this.insertForm.get('dakDiaryNo')?.value || '');
+    // formData.append('dakState', this.insertForm.get('dakState')?.value || '');
+    // formData.append('dakDistrict', this.insertForm.get('dakDistrict')?.value || '');
+    // formData.append('dakSection', this.insertForm.get('dakSection')?.value || '');
+    // formData.append('dakProcessed', this.insertForm.get('dakProcessed')?.value || '');
+    // formData.append('dakForwardTo', this.insertForm.get('dakForwardTo')?.value || '');
     // formData.append(
     //   'otherType',
     //   this.insertForm.get('otherValue')?.value || ''
@@ -955,12 +962,12 @@ export class SearchDashboardComponent implements OnInit {
   }
 
   allowOnlyNumbers(event: KeyboardEvent) {
-  const charCode = event.which ? event.which : event.keyCode;
+    const charCode = event.which ? event.which : event.keyCode;
 
-  if (charCode < 48 || charCode > 57) {
-    event.preventDefault();
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault();
+    }
   }
-}
 
 
   // =========================================================
