@@ -384,7 +384,7 @@
                   <option *ngFor="let district of districts" [value]="district">{{ district }}</option>
                 </select>
               </div>
-               <div class="form-group">
+              <div class="form-group">
                 <label>Section</label>
                 <select class="form-control" formControlName="sectionName">
                   <option value="">-- Select Section --</option>
@@ -493,6 +493,9 @@
             📊 Search Results
             <span class="count-badge">{{ results.length }} records found</span>
           </h3>
+          <button class="btn-export" [disabled]="!selectedFiling" (click)="toggleQuickView()">
+            👁 Inserted Record Details
+          </button>
           <!-- <button class="btn-export">⬇ Export</button> -->
         </div>
         <div class="table-responsive">
@@ -547,6 +550,193 @@
         </div>
       </div>
 
+      <!-- ================= QUICK VIEW POPUP ================= -->
+
+      <div class="accordion-wrapper" *ngIf="selectedFiling">
+
+        <div class="qv-overlay" *ngIf="showQuickView" (click)="showQuickView = false">
+
+          <div class="qv-modal" (click)="$event.stopPropagation()">
+
+            <!-- Header -->
+            <div class="qv-modal-header">
+              <h3>
+                👁 Inserted Record Details —
+                {{ selectedFiling.diaryNumber || 'N/A' }}
+              </h3>
+
+              <button type="button" class="btn-export" (click)="showQuickView = false">
+                ✕ Close
+              </button>
+            </div>
+
+            <div class="qv-grid">
+
+              <!-- ================= Details ================= -->
+              <div class="qv-section">
+
+                <h4>🗂 Details</h4>
+
+                <div class="qv-row">
+                  <span>Diary Number</span>
+                  <strong>{{ selectedFiling.diaryNumber || '—' }}</strong>
+                </div>
+
+                <div class="qv-row">
+                  <span>Registration No.</span>
+                  <strong>{{ selectedFiling.regNo || '—' }}</strong>
+                </div>
+
+                <div class="qv-row">
+                  <span>Title</span>
+                  <strong>{{ selectedFiling.titleName || '—' }}</strong>
+                </div>
+
+                <div class="qv-row">
+                  <span>Status</span>
+
+                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">
+                    {{ selectedFiling.status || '—' }}
+                  </span>
+
+                </div>
+
+              </div>
+
+              <!-- ================= Owner ================= -->
+              <div class="qv-section">
+
+                <h4>📰 Owner Details</h4>
+
+                <div class="qv-row">
+                  <span>Owner Name</span>
+                  <strong>{{ selectedFiling.ownerName || '—' }}</strong>
+                </div>
+
+                <div class="qv-row">
+                  <span>Publisher</span>
+                  <strong>{{ selectedFiling.publisherName || '—' }}</strong>
+                </div>
+
+                <div class="qv-row">
+                  <span>Periodicity</span>
+                  <strong>{{ selectedFiling.periodicity || '—' }}</strong>
+                </div>
+
+              </div>
+
+              <!-- ================= Address ================= -->
+              <div class="qv-section">
+
+                <h4>📍 Address</h4>
+
+                <div class="qv-row">
+                  <span>State</span>
+                  <strong>{{ selectedFiling.state || '—' }}</strong>
+                </div>
+
+                <div class="qv-row">
+                  <span>District</span>
+                  <strong>{{ selectedFiling.district || '—' }}</strong>
+                </div>
+
+              </div>
+
+              <!-- ================= Documents ================= -->
+              <div class="qv-section">
+
+                <h4>📂 Documents</h4>
+
+                <div class="doc-cards-grid">
+
+                  <ng-container *ngIf="selectedFiling.documents?.length; else noDocs">
+
+                    <div *ngFor="let doc of selectedFiling.documents; let i = index" class="doc-card">
+
+                      <div class="doc-card-icon">
+
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+
+                          <rect x="3" y="2" width="13" height="18" rx="2" fill="#e53935" stroke="#c62828"
+                            stroke-width="0.5" />
+
+                          <rect x="7" y="2" width="9" height="5" rx="1" fill="#ef9a9a" />
+
+                          <text x="8" y="16" font-size="4.5" fill="white" font-weight="bold" font-family="Arial">
+                            PDF
+                          </text>
+
+                        </svg>
+
+                      </div>
+
+                      <div class="doc-card-info">
+
+                        <div class="doc-card-name" [title]="doc">
+
+                          {{ getShortName(doc) }}
+
+                        </div>
+
+                        <div class="doc-card-slot">
+                          Slot {{ i + 1 }}
+                        </div>
+
+                      </div>
+
+                      <div class="doc-card-actions">
+
+                        <button type="button" class="doc-btn-view" (click)="viewDocument(selectedFiling, doc)">
+
+                          👁 View
+
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  </ng-container>
+
+                  <ng-template #noDocs>
+
+                    <div class="doc-empty">
+                      No documents attached
+                    </div>
+
+                  </ng-template>
+
+                </div>
+
+              </div>
+
+              <!-- ================= Timestamp ================= -->
+              <div class="qv-section">
+
+                <h4>🕒 Timestamps</h4>
+
+                <div class="qv-row">
+                  <span>Created</span>
+                  <strong>{{ formatDate(selectedFiling.createdAt) }}</strong>
+                </div>
+
+                <div class="qv-row">
+                  <span>Updated</span>
+                  <strong>{{ formatDate(selectedFiling.updatedAt) }}</strong>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ================= END QUICK VIEW POPUP ================= -->
+
       <div class="accordion-wrapper" *ngIf="selectedFiling">
 
         <!-- Title Bar -->
@@ -569,10 +759,13 @@
                 <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
                 <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
                 <div class="detail-row"><span>Title Name</span><strong>{{ selectedFiling.titleName }}</strong></div>
-                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
-                <div class="detail-row"><span>Language</span><strong>{{ $any(selectedFiling).language || '—' }}</strong>
+                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong>
                 </div>
-                <div class="detail-row"><span>Registration Date</span><strong>{{ formatDate(selectedFiling.filing_date)
+                <div class="detail-row"><span>Language</span><strong>{{ $any(selectedFiling).language || '—'
+                    }}</strong>
+                </div>
+                <div class="detail-row"><span>Registration Date</span><strong>{{
+                    formatDate(selectedFiling.filing_date)
                     }}</strong></div>
                 <!-- <div class="detail-row">
             <span>Status</span>
@@ -639,7 +832,8 @@
               <div class="detail-section">
                 <h4>🗂 Details</h4>
                 <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
-                <div class="detail-row"><span>Email</span><strong>{{ $any(selectedFiling).ownerEmail || '—' }}</strong>
+                <div class="detail-row"><span>Email</span><strong>{{ $any(selectedFiling).ownerEmail || '—'
+                    }}</strong>
                 </div>
                 <div class="detail-row"><span>Contact No.</span><strong>{{ $any(selectedFiling).ownerMobileNo || '—'
                     }}</strong></div>
@@ -726,7 +920,8 @@
                 <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
                 <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
                 <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.address }}</strong></div>
-                <div class="detail-row"><span>Pincode </span><strong>{{ $any(selectedFiling).pincode || '—' }}</strong>
+                <div class="detail-row"><span>Pincode </span><strong>{{ $any(selectedFiling).pincode || '—'
+                    }}</strong>
                 </div>
               </div>
               <!-- <div class="detail-section">
@@ -774,7 +969,8 @@
             <div class="detail-grid">
               <div class="detail-section">
                 <h4>🗂 Details</h4>
-                <div class="detail-row"><span>Editor Name</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+                <div class="detail-row"><span>Editor Name</span><strong>{{ selectedFiling.diaryNumber }}</strong>
+                </div>
                 <div class="detail-row"><span>Email</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
                 <div class="detail-row"><span>Contact No.</span><strong>{{ selectedFiling.titleName }}</strong></div>
                 <!-- <div class="detail-row">
@@ -793,7 +989,8 @@
                 <div class="detail-row"><span>State</span><strong>{{ selectedFiling.state }}</strong></div>
                 <div class="detail-row"><span>District</span><strong>{{ selectedFiling.district }}</strong></div>
                 <div class="detail-row"><span>Address</span><strong>{{ selectedFiling.address }}</strong></div>
-                <div class="detail-row"><span>Pincode </span><strong>{{ $any(selectedFiling).pincode || '—' }}</strong>
+                <div class="detail-row"><span>Pincode </span><strong>{{ $any(selectedFiling).pincode || '—'
+                    }}</strong>
                 </div>
               </div>
               <!-- <div class="detail-section">
@@ -842,7 +1039,8 @@
               <div class="detail-section">
                 <h4>🗂 Printing Press Details</h4>
                 <div class="detail-row"><span>Press Id</span><strong>{{ selectedFiling.ownerName }}</strong></div>
-                <div class="detail-row"><span>Press Name</span><strong>{{ selectedFiling.publisherName }}</strong></div>
+                <div class="detail-row"><span>Press Name</span><strong>{{ selectedFiling.publisherName }}</strong>
+                </div>
                 <!-- <div class="detail-row"><span>Keeper Name</span><strong>{{ selectedFiling.periodicity }}</strong></div> -->
                 <div class="detail-row"><span>Approved date</span><strong>{{ selectedFiling.periodicity }}</strong>
                 </div>
@@ -865,7 +1063,8 @@
                 <h4>🖨️ Keeper Details</h4>
                 <div class="detail-row"><span>Keeper Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
                 <div class="detail-row"><span>Email</span><strong>{{ selectedFiling.publisherName }}</strong></div>
-                <div class="detail-row"><span>Contact No.</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+                <div class="detail-row"><span>Contact No.</span><strong>{{ selectedFiling.periodicity }}</strong>
+                </div>
                 <!-- <div class="detail-row"><span>Approved date</span><strong>{{ selectedFiling.periodicity }}</strong></div> -->
               </div>
               <div class="detail-section">
@@ -923,7 +1122,8 @@
               <div class="detail-grid">
                 <div class="detail-section">
                   <h4>🗂 Details</h4>
-                  <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
+                  <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong>
+                  </div>
                   <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
                 </div>
                 <div class="detail-section">
@@ -1039,9 +1239,9 @@
           <tr> -->
                   <tbody>
 
-                    <tr *ngFor="let rev of evisionHistory; let i = index">
+                    <tr *ngFor="let rev of revisionHistory; let i = index">
 
-                      <td *ngIf="i === 0" [attr.rowspan]="evisionHistory.length">
+                      <td *ngIf="i === 0" [attr.rowspan]="revisionHistory.length">
                         {{ selectedFiling.titleName }}
                       </td>
 
@@ -1052,7 +1252,7 @@
                       <td>{{ rev.revisionDate }}</td>
 
                     </tr>
-                    <tr *ngIf="evisionHistory.length === 0">
+                    <tr *ngIf="revisionHistory.length === 0">
                       <td colspan="4" class="no-data">
                         No Revision History Available
                       </td>
@@ -1083,20 +1283,24 @@
             <div class="detail-grid">
               <div class="detail-section">
                 <h4>🗂 Details</h4>
-                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong>
+                </div>
                 <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
                 <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
                 <div class="detail-row">
                   <span>Status</span>
-                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status
+                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{
+                    selectedFiling.status
                     }}</span>
                 </div>
               </div>
               <div class="detail-section">
                 <h4>📅 Regularity Info</h4>
                 <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
-                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
-                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong>
+                </div>
+                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong>
+                </div>
               </div>
               <div class="detail-section">
                 <h4>📍 State/District</h4>
@@ -1130,9 +1334,11 @@
               </div>
               <div class="detail-section">
                 <h4>🕐 Timestamps</h4>
-                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong>
+                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt)
+                    }}</strong>
                 </div>
-                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong>
+                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt)
+                    }}</strong>
                 </div>
               </div>
               <!-- <div class="view-full-details-bar">
@@ -1156,20 +1362,24 @@
             <div class="detail-grid">
               <div class="detail-section">
                 <h4>🗂 Details</h4>
-                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong>
+                </div>
                 <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
                 <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
                 <div class="detail-row">
                   <span>Status</span>
-                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status
+                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{
+                    selectedFiling.status
                     }}</span>
                 </div>
               </div>
               <div class="detail-section">
                 <h4>📅 Regularity Info</h4>
                 <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
-                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
-                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong>
+                </div>
+                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong>
+                </div>
               </div>
               <div class="detail-section">
                 <h4>📍 State/District</h4>
@@ -1203,9 +1413,11 @@
               </div>
               <div class="detail-section">
                 <h4>🕐 Timestamps</h4>
-                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong>
+                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt)
+                    }}</strong>
                 </div>
-                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong>
+                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt)
+                    }}</strong>
                 </div>
               </div>
               <!-- <div class="view-full-details-bar">
@@ -1226,20 +1438,24 @@
             <div class="detail-grid">
               <div class="detail-section">
                 <h4>🗂 Details</h4>
-                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong>
+                </div>
                 <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
                 <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
                 <div class="detail-row">
                   <span>Status</span>
-                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status
+                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{
+                    selectedFiling.status
                     }}</span>
                 </div>
               </div>
               <div class="detail-section">
                 <h4>📰 Newsprint Info</h4>
                 <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
-                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
-                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong>
+                </div>
+                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong>
+                </div>
               </div>
               <div class="detail-section">
                 <h4>📍 State/District</h4>
@@ -1273,9 +1489,11 @@
               </div>
               <div class="detail-section">
                 <h4>🕐 Timestamps</h4>
-                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong>
+                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt)
+                    }}</strong>
                 </div>
-                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong>
+                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt)
+                    }}</strong>
                 </div>
               </div>
               <!-- <div class="view-full-details-bar">
@@ -1296,20 +1514,24 @@
             <div class="detail-grid">
               <div class="detail-section">
                 <h4>🗂 Details</h4>
-                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong>
+                </div>
                 <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
                 <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
                 <div class="detail-row">
                   <span>Status</span>
-                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status
+                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{
+                    selectedFiling.status
                     }}</span>
                 </div>
               </div>
               <div class="detail-section">
                 <h4>🔁 Circulation Info</h4>
                 <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
-                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
-                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong>
+                </div>
+                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong>
+                </div>
               </div>
               <div class="detail-section">
                 <h4>📍 State/District</h4>
@@ -1343,9 +1565,11 @@
               </div>
               <div class="detail-section">
                 <h4>🕐 Timestamps</h4>
-                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong>
+                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt)
+                    }}</strong>
                 </div>
-                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong>
+                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt)
+                    }}</strong>
                 </div>
               </div>
               <!-- <div class="view-full-details-bar">
@@ -1366,20 +1590,24 @@
             <div class="detail-grid">
               <div class="detail-section">
                 <h4>🗂 Details</h4>
-                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong></div>
+                <div class="detail-row"><span>Diary Number</span><strong>{{ selectedFiling.diaryNumber }}</strong>
+                </div>
                 <div class="detail-row"><span>Reg. No.</span><strong>{{ selectedFiling.regNo || '—' }}</strong></div>
                 <div class="detail-row"><span>Title</span><strong>{{ selectedFiling.titleName }}</strong></div>
                 <div class="detail-row">
                   <span>Status</span>
-                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{ selectedFiling.status
+                  <span class="status-badge" [ngClass]="getStatusClass(selectedFiling.status)">{{
+                    selectedFiling.status
                     }}</span>
                 </div>
               </div>
               <div class="detail-section">
                 <h4>🚫 Ceasing Info</h4>
                 <div class="detail-row"><span>Owner Name</span><strong>{{ selectedFiling.ownerName }}</strong></div>
-                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong></div>
-                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong></div>
+                <div class="detail-row"><span>Publisher</span><strong>{{ selectedFiling.publisherName }}</strong>
+                </div>
+                <div class="detail-row"><span>Periodicity</span><strong>{{ selectedFiling.periodicity }}</strong>
+                </div>
               </div>
               <div class="detail-section">
                 <h4>📍 State/District</h4>
@@ -1413,9 +1641,11 @@
               </div>
               <div class="detail-section">
                 <h4>🕐 Timestamps</h4>
-                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt) }}</strong>
+                <div class="detail-row"><span>Created</span><strong>{{ formatDate(selectedFiling.createdAt)
+                    }}</strong>
                 </div>
-                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt) }}</strong>
+                <div class="detail-row"><span>Updated</span><strong>{{ formatDate(selectedFiling.updatedAt)
+                    }}</strong>
                 </div>
               </div>
               <!-- <div class="view-full-details-bar">

@@ -494,6 +494,68 @@
     }
   }
 }
+.qv-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.qv-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 950px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,.25);
+}
+
+.qv-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  background: #f0f4fb;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+
+  h3 { font-size: 15px; color: var(--gov-blue); font-weight: 700; margin: 0; }
+}
+
+.qv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+.qv-section {
+  h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e3a5f;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+}
+
+.qv-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+
+  span { color: #64748b; }
+  strong { color: #1e293b; font-weight: 600; }
+}
 
 .table-responsive { overflow-x: auto; }
 .results-table {
@@ -2115,3 +2177,4 @@
     width: 100%;
     font-size: 16px;
 }
+

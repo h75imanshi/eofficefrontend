@@ -7,7 +7,7 @@ import { PressFullDetail, PressSearchResult } from '../models/press.model';
 })
 export class PressService {
 
-  private baseUrl = 'http://localhost:8181/api/press';
+  private baseUrl = 'http://10.197.4.2:8181/api/press';
 
   constructor(private http: HttpClient) {}
 
@@ -46,12 +46,12 @@ export class PressService {
 
   getKeeperDetails(id: string) {
   return this.http.get<any[]>(
-    `http://localhost:8181/api/keeper/press/${id}`
+    `http://10.197.4.2:8181/api/keeper/press/${id}`
   );
 }
   getMachineDetails(id: string) {
   return this.http.get<any[]>(
-    `http://localhost:8181/api/machine/press/${id}`
+    `http://10.197.4.2:8181/api/machine/press/${id}`
   );
 }
 
@@ -59,7 +59,7 @@ export class PressService {
 getNewspapersByPressName(pressName: string) {
 
   return this.http.get<any[]>(
-    `http://localhost:8181/api/newspaper/press-name/${encodeURIComponent(pressName.trim())}`
+    `http://10.197.4.2:8181/api/newspaper/press-name/${encodeURIComponent(pressName.trim())}`
   );
 
 }
@@ -69,7 +69,7 @@ getNewspapersByPressName(pressName: string) {
 // //Newspaper new api using a press application no//
 // getNewspapersByApplicationNo(appNo: string) {
 //   return this.http.get(
-//     `http://localhost:8181/api/newspaper/application?appNo=${encodeURIComponent(appNo)}`
+//     `http://10.197.4.2:8181/api/newspaper/application?appNo=${encodeURIComponent(appNo)}`
 //   );
 // }
 
@@ -89,7 +89,7 @@ getNewspapersByPressName(pressName: string) {
   getCoordinates(address: string) {
 
   return this.http.get<any>(
-    'http://localhost:8181/api/map/geocode',
+    'http://10.197.4.2:8181/api/map/geocode',
     {
       params: { address }
     }

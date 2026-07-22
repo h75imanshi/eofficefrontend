@@ -8,7 +8,7 @@ import { MandatoryFiling, ApiResponse, SearchRequest } from '../models/filing.mo
 })
 export class FilingService {
 
-  private baseUrl = 'http://localhost:8181/api/mandatory-filings';
+  private baseUrl = 'http://10.197.4.2:8181/api/mandatory-filings';
 
   constructor(private http: HttpClient) {}
 
@@ -106,33 +106,33 @@ export class FilingService {
 
 searchRegistrationByNewRegNo(regNo: string) {
   return this.http.get<any[]>(
-    `http://localhost:8181/api/registration/new-reg-no?value=${regNo}`
+    `http://10.197.4.2:8181/api/registration/new-reg-no?value=${regNo}`
   );
 }
 
 searchRegistrationByOldRegNo(oldRegNo: string) {
   return this.http.get<any[]>(
-    `http://localhost:8181/api/registration/old-reg-no?value=${oldRegNo}`
+    `http://10.197.4.2:8181/api/registration/old-reg-no?value=${oldRegNo}`
   );
 }
 
 searchRegistrationByTitle(title: string) {
   return this.http.get<any[]>(
-    `http://localhost:8181/api/registration/title?value=${title}`
+    `http://10.197.4.2:8181/api/registration/title?value=${title}`
   );
 }
 
 //Periodicity api  //
 getPeriodicities() {
   return this.http.get<any[]>(
-    'http://localhost:8181/api/periodicity'
+    'http://10.197.4.2:8181/api/periodicity'
   );
 }
 
 //Languages api //
 getLanguages() {
   return this.http.get<any[]>(
-    'http://localhost:8181/api/languages'
+    'http://10.197.4.2:8181/api/languages'
   );
 }
 
